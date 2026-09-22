@@ -11,7 +11,6 @@
 <title>French Bakery Аудит</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="logo-180.png">
-
 <style>
 :root{
   --bg:#f7f6fa;--bg-card:#ffffff;--bg-input:#f3f1f8;--bg-elev:#efedf5;
@@ -59,7 +58,7 @@ html{-webkit-text-size-adjust:100%;overflow-x:clip}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased;letter-spacing:-.005em;overflow-x:clip}
 body.modal-open{overflow:hidden}
 button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
-button, .tab, .hero-card, .recent-row, .field-row, .category-tile, .catalog-row, .more-row, .back-btn, .icon-btn, .search-clear, .chip, .card-main-cell, .card-income-cell, .unk-hours, .alias-target-row, .cat-row button, .cb-wrap, .row-cat, .row-unk { touch-action: manipulation; }
+button, .tab, .hero-card, .recent-row, .field-row, .category-tile, .catalog-row, .more-row, .back-btn, .icon-btn, .search-clear, .chip, .card-main-cell, .card-income-cell, .unk-hours, .alias-target-row, .cat-row button, .cb-wrap, .row-cat, .row-unk, .vial { touch-action: manipulation; }
 .app{max-width:var(--app-max);margin:0 auto;min-height:100dvh;background:var(--bg);position:relative;display:flex;flex-direction:column}
 @media (min-width:560px){body{background:var(--bg-elev)}.app{border-left:1px solid var(--border);border-right:1px solid var(--border);box-shadow:0 0 60px rgba(0,0,0,.05)}}
 .app-header{position:sticky;top:0;z-index:50;padding:0 18px;padding-top:env(safe-area-inset-top,0);height:calc(var(--header-h) + env(safe-area-inset-top,0));display:flex;align-items:center;gap:11px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);border-bottom:1px solid var(--border)}
@@ -80,14 +79,14 @@ button, .tab, .hero-card, .recent-row, .field-row, .category-tile, .catalog-row,
 .screen{display:none;padding:14px 18px 24px;animation:fadeIn .18s ease}
 .screen.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-
-/* Screen header — 3 columns so title is truly centered */
 .screen-header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:6px 0 14px;min-height:50px}
 .screen-header h2{font-size:20px;margin:0;font-weight:750;letter-spacing:-.4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .screen-header > .back-btn,
 .screen-header > .header-spacer{justify-self:start}
 .screen-header > .icon-btn,
-.screen-header > .header-count{justify-self:end}
+.screen-header > .header-count,
+.screen-header > .header-actions{justify-self:end}
+.header-actions{display:flex;gap:6px;align-items:center}
 .header-spacer{width:38px;height:38px;flex:0 0 auto}
 .header-count{font-size:13px;color:var(--text-2);font-weight:600;min-width:44px;text-align:right;flex:0 0 auto}
 .back-btn{width:38px;height:38px;padding:0;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);color:var(--text);font-size:22px;font-weight:500;line-height:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:transform .12s}
@@ -209,9 +208,8 @@ button.busy{pointer-events:none;opacity:.7}
 .card-main-cell .lbl{display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
 .card-main-cell .lbl .edit-note{font-size:9.5px;color:var(--orange);font-weight:700;text-transform:none;letter-spacing:0}
 .card-main-cell .inp-wrap{position:relative}
-.card-main-cell .num{width:100%;height:34px;padding:0 34px 0 4px;border:0;outline:0;background:transparent;font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.4px}
-.card-main-cell .unit{position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-3);font-weight:600;pointer-events:none}
-.card-main-cell .edit-icon{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-3);pointer-events:none}
+.card-main-cell .num{width:100%;height:34px;padding:0 30px 0 4px;border:0;outline:0;background:transparent;font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.4px}
+.card-main-cell .unit{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-3);font-weight:600;pointer-events:none}
 .card-main-cell .inp-wrap.edited .num{color:var(--orange)}
 .card-main-cell .inp-wrap .reset-btn{position:absolute;right:-3px;top:-4px;width:18px;height:18px;padding:0;border:2px solid var(--bg-input);border-radius:50%;background:var(--orange);color:#fff;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;cursor:pointer;z-index:2}
 .card-main-cell .inp-wrap.edited .reset-btn{display:inline-flex}
@@ -258,16 +256,18 @@ button.busy{pointer-events:none;opacity:.7}
 .result-stat.danger b{color:var(--red)}
 .result-stat.big b{color:var(--text)}
 .result-vials{padding:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:16px}
-.result-vials h3{margin:0 0 12px;font-size:14px;font-weight:700}
-.vial{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.result-vials h3{margin:0 0 8px;font-size:14px;font-weight:700}
+.vial{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:10px;transition:background .12s;width:100%;border-left:0;border-right:0;border-top:0;background:transparent;text-align:left;color:var(--text)}
 .vial:last-child{border-bottom:0}
-.vial-thumb{width:36px;height:36px;border-radius:10px;background:var(--bg-elev);display:flex;align-items:center;justify-content:center;font-size:16px}
+.vial:active{background:var(--bg-elev)}
+.vial-thumb{width:36px;height:36px;border-radius:10px;background:var(--bg-elev);display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto}
 .vial-body{flex:1;min-width:0}
 .vial-body b{font-size:13px;font-weight:650;display:block}
 .vial-body small{font-size:11px;color:var(--text-2);display:block;margin-top:2px}
 .vial-badge{font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;flex:0 0 auto}
 .vial-badge.danger{background:var(--red-soft);color:var(--red)}
 .vial-badge.warn{background:var(--orange-soft);color:var(--orange)}
+.vial-chevron{margin-left:4px;color:var(--text-3);font-size:16px;flex:0 0 auto}
 .catalog-list{display:flex;flex-direction:column;gap:6px}
 .catalog-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;cursor:pointer;text-align:left;width:100%;transition:background .12s}
 .catalog-row:active{background:var(--bg-elev)}
@@ -317,7 +317,7 @@ button.busy{pointer-events:none;opacity:.7}
 .counter.warn{color:var(--orange)}
 .counter.err{color:var(--red)}
 .table-wrap{display:none}
-.modal{position:fixed;inset:0;z-index:1000;background:rgba(15,10,30,.55);display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(15,10,30,.62);display:flex;align-items:flex-end;justify-content:center;padding:0}
 .modal.hidden{display:none}
 .modal-content{background:var(--bg-card);width:100%;max-width:520px;border-radius:22px 22px 0 0;max-height:92dvh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .25s ease}
 @media (min-width:560px){.modal{align-items:center;padding:20px}.modal-content{border-radius:22px;max-height:88dvh}}
@@ -334,8 +334,6 @@ input::placeholder{color:var(--text-3)}
 input:read-only{cursor:default}
 textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:13px;background:var(--bg-input);color:var(--text);font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.5;min-height:130px;max-height:400px;resize:vertical;outline:none}
 textarea:focus{border-color:var(--accent);background:var(--bg-card)}
-
-/* ===== Unknown modal — двухстрочная строка ===== */
 .row-unk{display:grid;grid-template-columns:24px 1fr;grid-template-areas:"cb main" ". time";gap:8px;padding:12px 0;align-items:start;border-bottom:1px solid var(--border)}
 .row-unk .cb-wrap{grid-area:cb;width:24px;height:auto;padding-top:10px;justify-content:flex-start;display:inline-flex}
 .row-unk .unk-main{grid-area:main;min-width:0}
@@ -351,8 +349,6 @@ textarea:focus{border-color:var(--accent);background:var(--bg-card)}
 .pill-wrap .unit{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text-3);font-weight:600;pointer-events:none}
 .unk-hours .unit{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text-3);font-weight:600;pointer-events:none}
 .row.selected{background:var(--accent-softer);border-radius:12px;padding-left:8px;padding-right:8px;margin-left:-8px;margin-right:-8px}
-
-/* ===== Catalog modal — карточная вёрстка ===== */
 .cat-row,.row-ign{padding:8px 0;border-bottom:1px solid var(--border);display:grid;gap:8px;align-items:center}
 .row-ign{grid-template-columns:1fr 34px}
 .row-ign.col-3{grid-template-columns:24px 1fr}
@@ -392,6 +388,36 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--text);color:var(--bg);font-size:13.5px;font-weight:500;padding:12px 18px;border-radius:14px;z-index:9999;opacity:0;transition:opacity .25s, transform .25s;max-width:90vw;text-align:center;pointer-events:none;box-shadow:0 12px 30px rgba(0,0,0,.22)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .hidden{display:none !important}
+
+/* Detail modal for item */
+.detail-hero{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-input);border-radius:14px;margin-bottom:14px}
+.detail-hero .card-thumb{width:48px;height:48px;font-size:22px}
+.detail-hero .dh-body{flex:1;min-width:0}
+.detail-hero .dh-body b{display:block;font-size:15px;font-weight:700;line-height:1.25;word-break:break-word}
+.detail-hero .dh-body small{display:block;font-size:11.5px;color:var(--text-2);margin-top:3px}
+.detail-section{margin-bottom:14px}
+.detail-section h4{margin:0 0 8px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-cell{padding:12px;background:var(--bg-input);border-radius:12px;border:1px solid var(--border)}
+.detail-cell small{display:block;font-size:11px;color:var(--text-2);margin-bottom:4px}
+.detail-cell b{font-size:20px;font-weight:800;letter-spacing:-.5px;display:block;line-height:1.1}
+.detail-cell.good b{color:var(--green)}
+.detail-cell.bad b{color:var(--red)}
+.detail-cell.warn b{color:var(--orange)}
+.detail-list{background:var(--bg-input);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;border-bottom:1px solid var(--border);font-size:13px}
+.detail-row:last-child{border-bottom:0}
+.detail-row .dk{color:var(--text-2)}
+.detail-row .dv{font-weight:600;color:var(--text)}
+.detail-status{display:flex;align-items:center;gap:8px;padding:12px 13px;border-radius:12px;font-size:13px;font-weight:650;margin-top:4px}
+.detail-status .ds-dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex:0 0 auto}
+.detail-status.ok{background:var(--green-soft);color:var(--green)}
+.detail-status.warn{background:var(--orange-soft);color:var(--orange)}
+.detail-status.warn .ds-dot{background:var(--orange)}
+.detail-status.danger{background:var(--red-soft);color:var(--red)}
+.detail-status.danger .ds-dot{background:var(--red)}
+.detail-status.empty{background:var(--bg-elev);color:var(--text-2)}
+.detail-status.empty .ds-dot{background:var(--text-3)}
 </style>
 </head>
 
@@ -517,7 +543,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
 
     <section class="screen" data-screen="check">
       <div class="screen-header">
-        <button class="back-btn" data-back="materials" type="button">‹</button>
+        <span class="header-spacer"></span>
         <h2>Проверка</h2>
         <span class="header-count" id="checkCounter">0/0</span>
       </div>
@@ -556,8 +582,9 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
 
     <section class="screen" data-screen="results">
       <div class="screen-header">
-        <button class="back-btn" data-back="check" type="button">‹</button>
+        <span class="header-spacer"></span>
         <h2>Результаты</h2>
+        <span class="header-count"></span>
       </div>
       <div id="resultsBody"></div>
     </section>
@@ -566,7 +593,10 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
       <div class="screen-header">
         <span class="header-spacer"></span>
         <h2>Справочник товаров</h2>
-        <button class="icon-btn" id="catalogSettingsBtn" type="button" aria-label="Управление">⚙</button>
+        <div class="header-actions">
+          <button class="icon-btn" id="catalogAddBtn" type="button" aria-label="Добавить товар" title="Добавить товар">＋</button>
+          <button class="icon-btn" id="catalogSettingsBtn" type="button" aria-label="Управление" title="Управление">⚙</button>
+        </div>
       </div>
       <div class="search-bar">
         <span class="search-icon"></span>
@@ -574,7 +604,6 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
       </div>
       <div class="chips" id="catalogFilters"></div>
       <div id="catalogScreenList" class="catalog-list"></div>
-      <button class="btn-primary block" id="catalogAddBtn" type="button" style="margin-top:16px">+ Добавить товар</button>
     </section>
 
     <section class="screen" data-screen="more">
@@ -651,7 +680,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
         <span id="aliasesCount">0</span>
       </div>
 
-      <p class="hint version">French Bakery Аудит · v11.1.0</p>
+      <p class="hint version">French Bakery Аудит · v11.2.0</p>
     </section>
 
     <div class="banner hidden" id="banner">
@@ -677,13 +706,8 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
     <div class="modal-header">
       <h3>Справочник сроков</h3>
       <p class="hint">Меняйте названия и сроки.</p>
-      <div style="margin:12px 0 0;display:flex;gap:8px;align-items:center">
-        <div class="search-bar" style="flex:1;margin:0">
-          <span class="search-icon"></span>
-          <input id="catalogSearch" type="text" placeholder="Поиск..." autocomplete="off" maxlength="100">
-          <button type="button" class="search-clear" id="catalogSearchClear" aria-label="Очистить"><span class="x-icon"></span></button>
-        </div>
-        <button type="button" id="catalogSelectModeBtn" class="btn-secondary" style="flex:0 0 auto;min-height:46px;padding:8px 14px;font-size:13.5px">Выбрать</button>
+      <div style="margin:12px 0 0">
+        <button type="button" id="catalogSelectModeBtn" class="btn-secondary block">Выбрать</button>
       </div>
     </div>
     <div class="cat-select-bar" id="catalogSelectBar" style="display:none;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--bg-card)">
@@ -719,6 +743,19 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
       </div>
       <input id="importCatalogFile" type="file" accept=".json" hidden>
       <button id="closeCatalogBtn" class="btn-secondary block" type="button">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<div id="itemDetailModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Карточка товара</h3>
+      <p class="hint">Остатки, продажи и приходы.</p>
+    </div>
+    <div class="modal-body" id="itemDetailBody"></div>
+    <div class="modal-footer">
+      <button id="itemDetailClose" class="btn-secondary block" type="button">Закрыть</button>
     </div>
   </div>
 </div>
@@ -897,7 +934,6 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:12px;font-s
 <script>
 'use strict';
 
-/* ============ SAFE STORAGE (iOS private / http fallback) ============ */
 const _memStore = {};
 const safeStorage = {
   getItem(k){ try { return localStorage.getItem(k); } catch(e){ return _memStore[k] ?? null; } },
@@ -934,7 +970,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v11.1.0';
+const APP_VERSION = 'v11.2.0';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -966,7 +1002,6 @@ let isRendering = false;
 let pendingSessionReset = false;
 let resetToken = 0;
 const _activeDeletes = new Set();
-let _fileBusy = false;
 let _timeUpdater = null;
 let _totalsTimer = null;
 let _tableSyncTimer = null;
@@ -986,11 +1021,9 @@ let _ignoredSelectMode = false;
 let _ignoredSelected = new Set();
 let _aliasTargetFor = null;
 let _aliasTargetMode = null;
-let _currentScreen = 'home';
 let _catalogScreenFilter = 'all';
 
 const $ = id => { try { return document.getElementById(id); } catch (e) { return null; } };
-
 function openModal(id) { const el = $(id); if (!el) return; document.body.style.overflow = 'hidden'; document.body.classList.add('modal-open'); el.classList.remove('hidden'); }
 function closeModal(id) { const el = $(id); if (!el) return; el.classList.add('hidden'); const anyOpen = document.querySelector('.modal:not(.hidden)'); if (!anyOpen) { document.body.style.overflow = ''; document.body.classList.remove('modal-open'); } }
 function clampNum(v, min, max, fallback) { if (v == null) return fallback; const n = Number(v); if (!isFinite(n)) return fallback; return Math.min(max, Math.max(min, n)); }
@@ -1173,7 +1206,6 @@ function loadSession(){try{const raw=safeStorage.getItem(SESSION_KEY);if(!raw)re
 function applySession(data){if(!data)return false;isRestoring=true;try{if($('point')&&typeof data.point==='string')$('point').value=data.point.slice(0,50);setSelectedCategory(data.category||getSelectedCategory()||'');if($('csvInput')&&typeof data.csvText==='string')$('csvInput').value=data.csvText.slice(0,500000);if(Array.isArray(data.rows)&&data.rows.length){tableRows=data.rows.slice(0,MAX_ROWS).map(r=>{let stock=null;if(r.stock!=null&&r.stock!=='')stock=clampNum(r.stock,0,MAX_NUM,0);let shelf;if(r.shelfLife===0||r.shelfLife==null)shelf=0;else shelf=clampNum(r.shelfLife,1,10000,72);const salesVal=clampNum(r.sales,0,MAX_NUM,0);const origSales=r._originalSales!=null?clampNum(r._originalSales,0,MAX_NUM,salesVal):salesVal;return{name:safeStr(r.name,MAX_NAME),stock,sales:salesVal,_originalSales:origSales,shelfLife:shelf,category:getProductCategory({name:r.name,category:r.category}),incoming:Array.isArray(r.incoming)?r.incoming.slice(0,MAX_DATES).map(p=>{const qty=clampNum(p.qty,0,MAX_NUM,0);const orig=p._originalQty!=null?clampNum(p._originalQty,0,MAX_NUM,qty):qty;return{date:typeof p.date==='string'?p.date:'',qty,_originalQty:orig};}).filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(p.date)):[],salesOnly:!!r.salesOnly};}).filter(r=>r.name);}else tableRows=[];parsedRowsCache=tableRows.map(r=>({name:r.name,stock:null,sales:r.sales,_originalSales:r._originalSales,shelfLife:r.shelfLife,incoming:(r.incoming||[]).map(p=>({...p})),salesOnly:false}));if(Array.isArray(data.unknown)&&data.unknown.length){unknownRows=data.unknown.slice(0,MAX_ROWS).map(r=>{let shelf;if(r.shelfLife===0||r.shelfLife==null)shelf=0;else shelf=clampNum(r.shelfLife,1,10000,72);return{name:safeStr(r.name,MAX_NAME),sales:clampNum(r.sales,0,MAX_NUM,0),shelfLife:shelf,incoming:Array.isArray(r.incoming)?r.incoming.slice(0,MAX_DATES).map(p=>({date:typeof p.date==='string'?p.date:'',qty:clampNum(p.qty,0,MAX_NUM,0)})).filter(p=>/^\d{4}-\d{2}-\d{2}$/.test(p.date)):[],salesOnly:!!r.salesOnly};}).filter(r=>r.name);}else unknownRows=[];return true;}finally{isRestoring=false;}}
 
 function setScreen(name){
-  _currentScreen=name;
   document.querySelectorAll('[data-screen]').forEach(el=>el.classList.toggle('active',el.dataset.screen===name));
   document.querySelectorAll('[data-nav]').forEach(el=>el.classList.toggle('active',el.dataset.nav===name));
   window.scrollTo({top:0,behavior:'instant'});
@@ -1233,6 +1265,65 @@ function updateFilterCounts(){
   const ctr=$('checkCounter');
   if(ctr)ctr.textContent=tableRows.length?`${tableRows.length}/${tableRows.length}`:'';
 }
+
+/* ===== Item detail modal ===== */
+function openItemDetail(name){
+  const row=tableRows.find(r=>r.name===name);
+  if(!row){showToast('Товар не найден');return;}
+  const calc=computeFIFO(row);
+  const meta=CATEGORY_META[getProductCategory(row)]||CATEGORY_META['Другое'];
+  const status=getCardStatus(calc,row);
+  const statusText={
+    ok:{label:'Без нарушений',cls:'ok'},
+    warn:{label:'Просрочка на витрине',cls:'warn'},
+    danger:{label:'Продано просроченным',cls:'danger'},
+    empty:{label:'Введите остаток',cls:'empty'},
+    fresh:{label:'Только продажи',cls:'ok'}
+  }[status]||{label:'—',cls:'empty'};
+
+  const parties=mergeIncomingByDate(row.incoming);
+
+  let html='';
+  html+=`<div class="detail-hero">
+    <div class="card-thumb ${meta.cls}">${meta.icon}</div>
+    <div class="dh-body">
+      <b>${escapeHtml(row.name)}</b>
+      <small>${escapeHtml(getProductCategory(row))} · срок ${row.shelfLife||0} ч</small>
+    </div>
+  </div>`;
+
+  html+=`<div class="detail-section"><h4>Остаток и продажи</h4>
+    <div class="detail-grid">
+      <div class="detail-cell"><small>Остаток</small><b>${row.stock==null?'—':row.stock}</b></div>
+      <div class="detail-cell"><small>Продано сегодня</small><b>${row.sales||0}</b></div>
+    </div>
+  </div>`;
+
+  if(parties.length){
+    html+=`<div class="detail-section"><h4>Поступления</h4><div class="detail-list">`;
+    parties.forEach(p=>{html+=`<div class="detail-row"><span class="dk">За ${fmtDateRuShort(p.date)}</span><span class="dv">${p.qty} шт</span></div>`;});
+    html+=`</div></div>`;
+  }
+
+  if(!row.salesOnly && calc.soldExpired!==null){
+    html+=`<div class="detail-section"><h4>Расчёт сроков</h4>
+      <div class="detail-grid">
+        <div class="detail-cell good"><small>Свежих на витрине</small><b>${calc.freshOnShelf}</b></div>
+        <div class="detail-cell good"><small>Продано свежих</small><b>${calc.freshSold}</b></div>
+        <div class="detail-cell ${calc.expiredOnShelf>0?'bad':''}"><small>Просрочено на витрине</small><b>${calc.expiredOnShelf}</b></div>
+        <div class="detail-cell ${calc.soldExpired>0?'bad':''}"><small>Продано просроченным</small><b>${calc.soldExpired}</b></div>
+      </div>
+    </div>`;
+  }
+
+  html+=`<div class="detail-status ${statusText.cls}"><span class="ds-dot"></span>${escapeHtml(statusText.label)}</div>`;
+
+  const body=$('itemDetailBody');
+  if(body)body.innerHTML=html;
+  openModal('itemDetailModal');
+}
+
+/* ===== Results ===== */
 function renderResults(){
   const box=$('resultsBody');if(!box)return;
   if(!tableRows.length){
@@ -1265,24 +1356,36 @@ function renderResults(){
       <div class="result-stat danger"><b>${danger}</b><span>нарушений</span></div>
     </div>`;
   if(violations.length){
-    html+=`<div class="result-vials"><h3>Товары с нарушениями</h3>`;
-    violations.slice(0,10).forEach(v=>{
-      const meta=CATEGORY_META[v.row.category]||CATEGORY_META['Другое'];
+    html+=`<div class="result-vials"><h3>Товары с нарушениями <span style="font-weight:500;color:var(--text-3);font-size:11.5px">— тапните для деталей</span></h3>`;
+    violations.slice(0,20).forEach(v=>{
+      const meta=CATEGORY_META[getCategoryOfRow(v.row)]||CATEGORY_META['Другое'];
       const isDanger=v.label.includes('Продано');
-      html+=`<div class="vial">
+      html+=`<button class="vial" type="button" data-vial-name="${escapeHtml(v.row.name)}">
         <div class="vial-thumb ${meta.cls}">${meta.icon}</div>
         <div class="vial-body"><b>${escapeHtml(v.row.name)}</b><small>${escapeHtml(v.label)}${isDanger?` · ${v.calc.soldExpired}`:` · ${v.calc.expiredOnShelf}`}</small></div>
         <span class="vial-badge ${isDanger?'danger':'warn'}">${v.row.shelfLife} ч</span>
-      </div>`;
+        <span class="vial-chevron">›</span>
+      </button>`;
     });
     html+=`</div>`;
   }
   html+=`<button class="btn-primary block" id="resultsExportBtn" type="button">Скачать отчёт (Excel)</button>
     <button class="btn-secondary block" id="resultsBackBtn" type="button" style="margin-top:8px">Вернуться к проверке</button>`;
   box.innerHTML=html;
+  box.querySelectorAll('.vial').forEach(btn=>{
+    btn.onclick=()=>openItemDetail(btn.dataset.vialName);
+  });
   const eb=$('resultsExportBtn');if(eb)eb.onclick=()=>exportExcel();
   const bb=$('resultsBackBtn');if(bb)bb.onclick=()=>setScreen('check');
 }
+function getCategoryOfRow(row){
+  if(!row)return 'Другое';
+  if(row.category&&CATEGORY_OPTIONS.includes(row.category))return row.category;
+  const p=PRODUCTS.find(x=>normalizeName(x.name)===normalizeName(row.name));
+  if(p)return getProductCategory(p);
+  return inferCategory(row.name);
+}
+
 function renderCatalogScreen(){
   const list=$('catalogScreenList');if(!list)return;
   const filtersBox=$('catalogFilters');
@@ -1324,8 +1427,6 @@ function renderCatalogScreen(){
 function openCatalogModal(searchName){
   const cs=$('catalogStatus');if(cs){cs.className='status';cs.textContent='';}
   _catalogSelectMode=false;_catalogSelected=new Set();updateCatalogSelectUI();
-  const search=$('catalogSearch');
-  if(search)search.value=searchName||'';
   renderCatalogList();
   openModal('catalogModal');
 }
@@ -1413,8 +1514,6 @@ function buildMainCell(label,inputEl,note){
   cell.appendChild(inputEl);
   const unit=document.createElement('span');unit.className='unit';unit.textContent='шт';
   cell.appendChild(unit);
-  const icon=document.createElement('span');icon.className='edit-icon';icon.textContent='✎';
-  cell.appendChild(icon);
   return cell;
 }
 function buildIncomeCell(row,date,party,card){
@@ -1580,7 +1679,6 @@ function renderUnknownModal(){
     let infoStr=`Продано: <b>${r.sales||0}</b>`;
     if(r.incoming&&r.incoming.length){const withQty=r.incoming.filter(p=>p.qty>0).sort((a,b)=>b.date.localeCompare(a.date));withQty.forEach(p=>{infoStr+=` · За ${fmtDateRuShort(p.date)}: <b>${p.qty}</b>`;});}
     infoEl.innerHTML=infoStr;main.appendChild(infoEl);row.appendChild(main);
-    /* two compact time inputs under the title */
     const timeGrid=document.createElement('div');timeGrid.className='unk-time-grid';
     const hoursWrap=document.createElement('div');hoursWrap.className='unk-hours';
     const hInp=makeNumInput({className:'pill center',value:r.shelfLife&&r.shelfLife>0?r.shelfLife:0});
@@ -1679,7 +1777,7 @@ function updateCatalogSelectUI(){
   if(addBlock)addBlock.style.display=_catalogSelectMode?'none':'block';
   if(normalActions)normalActions.style.display=_catalogSelectMode?'none':'block';
   if(selectActions)selectActions.style.display=_catalogSelectMode?'block':'none';
-  if(modeBtn){modeBtn.textContent=_catalogSelectMode?'Готово':'Выбрать';modeBtn.className=_catalogSelectMode?'btn-primary':'btn-secondary';}
+  if(modeBtn){modeBtn.textContent=_catalogSelectMode?'Готово':'Выбрать';modeBtn.className=_catalogSelectMode?'btn-primary block':'btn-secondary block';}
   if(countEl)countEl.textContent=String(_catalogSelected.size);
   if(toIgnoredBtn)toIgnoredBtn.textContent=`В игнор-лист (${_catalogSelected.size})`;
   const matchBtn=$('catalogMatchBtn');
@@ -1687,12 +1785,11 @@ function updateCatalogSelectUI(){
 }
 function renderCatalogList(){
   const list=$('catalogList');if(!list)return;
-  const searchEl=$('catalogSearch');const searchClear=$('catalogSearchClear');
-  const query=(searchEl&&searchEl.value||'').toLowerCase().trim();
-  if(searchClear)searchClear.classList.toggle('show',!!query);
+  const searchClear=$('catalogSearchClear');
+  if(searchClear)searchClear.classList.remove('show');
   list.innerHTML='';
   if(!PRODUCTS.length){list.innerHTML='<div class="hint" style="text-align:center;padding:20px">Справочник пуст.</div>';return;}
-  const filtered=PRODUCTS.map((p,idx)=>({...p,_idx:idx})).filter(p=>!query||p.name.toLowerCase().includes(query)).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+  const filtered=PRODUCTS.map((p,idx)=>({...p,_idx:idx})).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
   if(!filtered.length){list.innerHTML='<div class="hint" style="text-align:center;padding:20px">Ничего не найдено.</div>';return;}
   const fragment=document.createDocumentFragment();
   filtered.forEach(p=>{
@@ -1700,7 +1797,6 @@ function renderCatalogList(){
     const row=document.createElement('div');
     row.className='row-cat'+(_catalogSelectMode?' col-6':'');
     if(_catalogSelectMode&&isSel)row.classList.add('selected');
-
     let nameRow=row;
     if(_catalogSelectMode){
       nameRow=document.createElement('div');nameRow.className='row-cat-select';
@@ -1729,14 +1825,11 @@ function renderCatalogList(){
       saveCatalog();scheduleSessionSave();
     };
     nameRow.appendChild(nameInput);
-
     const metaRow=document.createElement('div');metaRow.className='row-cat-meta';
-
     const catSelect=document.createElement('select');catSelect.className='catalog-category';catSelect.disabled=_catalogSelectMode;
     CATEGORY_OPTIONS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;if(getProductCategory(p)===c)o.selected=true;catSelect.appendChild(o);});
     catSelect.addEventListener('change',()=>{if(_catalogSelectMode)return;PRODUCTS[p._idx].category=CATEGORY_OPTIONS.includes(catSelect.value)?catSelect.value:DEFAULT_CATEGORY;saveCatalog();refreshCategoryOptions();if(getSelectedCategory()&&parsedRowsCache.length){rebuildRowsForCategory({preserveEdits:true});renderTable();updateUnknownBanner();}scheduleSessionSave();});
     metaRow.appendChild(catSelect);
-
     const hoursWrap=document.createElement('div');hoursWrap.className='pill-wrap';
     const hoursInput=document.createElement('input');
     hoursInput.type='text';hoursInput.className='pill center';hoursInput.inputMode='numeric';
@@ -1746,7 +1839,6 @@ function renderCatalogList(){
     hoursInput.addEventListener('input',()=>{const c=onlyDigits(hoursInput.value);if(c!==hoursInput.value)hoursInput.value=c;});
     hoursInput.addEventListener('change',()=>{if(_catalogSelectMode)return;const cleaned=onlyDigits(hoursInput.value);let v;if(cleaned==='')v=0;else{const n=Number(cleaned);v=(!isFinite(n)||n===0)?0:clampNum(n,1,MAX_SHELF_HOURS,48);}PRODUCTS[p._idx].shelfLife=v;hoursInput.value=String(v);daysInput.value=formatDays(v);tableRows.forEach(r=>{if(r.name===PRODUCTS[p._idx].name){r.shelfLife=v;r.category=getProductCategory(PRODUCTS[p._idx]);}});saveCatalog();scheduleSessionSave();});
     metaRow.appendChild(hoursWrap);
-
     const daysWrap=document.createElement('div');daysWrap.className='pill-wrap';
     const daysInput=document.createElement('input');
     daysInput.type='text';daysInput.className='pill center';daysInput.inputMode='decimal';
@@ -1756,7 +1848,6 @@ function renderCatalogList(){
     daysInput.addEventListener('input',()=>{const c=String(daysInput.value).replace(',','.').replace(/[^\d.]/g,'');if(c!==daysInput.value)daysInput.value=c;});
     daysInput.addEventListener('change',()=>{if(_catalogSelectMode)return;const days=parseDaysInput(daysInput.value);const hoursRaw=daysToHours(days);if(hoursRaw>MAX_SHELF_HOURS){showToast(`Максимум ${MAX_SHELF_DAYS} суток`);const oldH=PRODUCTS[p._idx].shelfLife;hoursInput.value=String(oldH);daysInput.value=formatDays(oldH);return;}const hours=clampNum(hoursRaw,0,MAX_SHELF_HOURS,0);PRODUCTS[p._idx].shelfLife=hours;hoursInput.value=String(hours);daysInput.value=formatDays(hours);tableRows.forEach(r=>{if(r.name===PRODUCTS[p._idx].name){r.shelfLife=hours;r.category=getProductCategory(PRODUCTS[p._idx]);}});saveCatalog();scheduleSessionSave();});
     metaRow.appendChild(daysWrap);
-
     if(!_catalogSelectMode){
       const delBtn=document.createElement('button');
       delBtn.className='del-btn';delBtn.type='button';
@@ -1765,7 +1856,6 @@ function renderCatalogList(){
       metaRow.appendChild(delBtn);
     }
     row.appendChild(metaRow);
-
     if(_catalogSelectMode){
       row.addEventListener('click',e=>{
         if(e.target.closest('input')||e.target.closest('button')||e.target.closest('select'))return;
@@ -1812,7 +1902,7 @@ function updateIgnoredSelectUI(){
   if(bar)bar.style.display=_ignoredSelectMode?'block':'none';
   if(normalActions)normalActions.style.display=_ignoredSelectMode?'none':'block';
   if(selectActions)selectActions.style.display=_ignoredSelectMode?'block':'none';
-  if(modeBtn){modeBtn.textContent=_ignoredSelectMode?'Готово':'Выбрать';modeBtn.className=_ignoredSelectMode?'btn-primary':'btn-secondary';}
+  if(modeBtn){modeBtn.textContent=_ignoredSelectMode?'Готово':'Выбрать';modeBtn.className=_ignoredSelectMode?'btn-primary block':'btn-secondary block';}
   if(countEl)countEl.textContent=String(_ignoredSelected.size);
   if(toCatalogBtn)toCatalogBtn.textContent=`Вернуть в справочник (${_ignoredSelected.size})`;
 }
@@ -2267,6 +2357,7 @@ function bindUI(){
   const activateOwnerBtn=$('activateOwnerBtn');if(activateOwnerBtn)activateOwnerBtn.onclick=activateOwner;
   const deactivateOwnerBtn=$('deactivateOwnerBtn');if(deactivateOwnerBtn)deactivateOwnerBtn.onclick=()=>{deactivateOwner();closeModal('ownerModal');};
   const closeOwner=$('closeOwnerModalBtn');if(closeOwner)closeOwner.onclick=()=>closeModal('ownerModal');
+  const itemDetailClose=$('itemDetailClose');if(itemDetailClose)itemDetailClose.onclick=()=>closeModal('itemDetailModal');
   const bannerApply=$('bannerApply');if(bannerApply)bannerApply.onclick=()=>{applyPendingRemote();hideCatalogUpdateBanner();};
   const bannerLater=$('bannerLater');if(bannerLater)bannerLater.onclick=()=>{_pendingRemote=null;hideCatalogUpdateBanner();};
   const copyFromModal=$('copyFromModalBtn');
@@ -2316,16 +2407,13 @@ function bindUI(){
   const catalogSelectModeBtn=$('catalogSelectModeBtn');
   if(catalogSelectModeBtn)catalogSelectModeBtn.onclick=(e)=>{e.stopPropagation();_catalogSelectMode=!_catalogSelectMode;if(!_catalogSelectMode)_catalogSelected=new Set();updateCatalogSelectUI();renderCatalogList();};
   const catalogSelectAllBtn=$('catalogSelectAllBtn');
-  if(catalogSelectAllBtn)catalogSelectAllBtn.onclick=(e)=>{e.stopPropagation();const searchEl=$('catalogSearch');const query=(searchEl&&searchEl.value||'').toLowerCase().trim();const filtered=PRODUCTS.filter(p=>!query||p.name.toLowerCase().includes(query));filtered.forEach(p=>_catalogSelected.add(normalizeName(p.name)));updateCatalogSelectUI();renderCatalogList();};
+  if(catalogSelectAllBtn)catalogSelectAllBtn.onclick=(e)=>{e.stopPropagation();PRODUCTS.forEach(p=>_catalogSelected.add(normalizeName(p.name)));updateCatalogSelectUI();renderCatalogList();};
   const catalogClearSelBtn=$('catalogClearSelBtn');
   if(catalogClearSelBtn)catalogClearSelBtn.onclick=(e)=>{e.stopPropagation();_catalogSelected=new Set();updateCatalogSelectUI();renderCatalogList();};
   const catalogMatchBtn=$('catalogMatchBtn');
   if(catalogMatchBtn)catalogMatchBtn.onclick=(e)=>{e.stopPropagation();if(_catalogSelected.size!==1)return;const key=[..._catalogSelected][0];const found=PRODUCTS.find(p=>normalizeName(p.name)===key);if(found)openAliasTargetModal(found.name,'catalog');};
   const catalogToIgnoredBtn=$('catalogToIgnoredBtn');
   if(catalogToIgnoredBtn)catalogToIgnoredBtn.onclick=(e)=>{e.stopPropagation();catalogToIgnored();};
-  const catModalSearch=$('catalogSearch');if(catModalSearch)catModalSearch.oninput=renderCatalogList;
-  const catModalSearchClear=$('catalogSearchClear');
-  if(catModalSearchClear)catModalSearchClear.onclick=()=>{const s=$('catalogSearch');if(s)s.value='';renderCatalogList();};
   const addProd=$('addProdBtn');
   if(addProd)addProd.onclick=()=>{
     if(_catalogSelectMode)return;
@@ -2446,7 +2534,7 @@ function bindUI(){
     }finally{setTimeout(()=>{pendingSessionReset=false;},500);}
   };
 
-  ['catalogModal','unknownModal','ignoredModal','aliasesModal','aliasTargetModal','promptModal','csvModal','ownerModal','pointModal'].forEach(id=>{
+  ['catalogModal','unknownModal','ignoredModal','aliasesModal','aliasTargetModal','promptModal','csvModal','ownerModal','pointModal','itemDetailModal'].forEach(id=>{
     const m=$(id);if(!m)return;
     m.addEventListener('click',e=>{
       if(e.target!==m)return;
@@ -2460,7 +2548,8 @@ function bindUI(){
   });
   document.addEventListener('keydown',e=>{
     if(e.key!=='Escape')return;
-    if(!$('aliasTargetModal').classList.contains('hidden'))closeAliasTargetModal();
+    if(!$('itemDetailModal').classList.contains('hidden'))closeModal('itemDetailModal');
+    else if(!$('aliasTargetModal').classList.contains('hidden'))closeAliasTargetModal();
     else if(!$('aliasesModal').classList.contains('hidden'))closeAliasesModal();
     else if(!$('unknownModal').classList.contains('hidden'))closeUnknownModal();
     else if(!$('ignoredModal').classList.contains('hidden'))closeModal('ignoredModal');
@@ -2517,7 +2606,7 @@ function init(){
     window.addEventListener('beforeunload',()=>{if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}saveSession();});
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}saveSession();}});
     window.addEventListener('error',e=>console.warn('Global error:',e.message));
-    console.log('%c French Bakery Аудит ','background:#7c4dff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800','v11.1.0 · catalog:',PRODUCTS.length,'· ignored:',IGNORED.length,'· aliases:',ALIASES.length);
+    console.log('%c French Bakery Аудит ','background:#7c4dff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800','v11.2.0 · catalog:',PRODUCTS.length,'· ignored:',IGNORED.length,'· aliases:',ALIASES.length);
   } catch(err) {
     console.error('Init failed:', err);
     document.querySelectorAll('[data-screen]').forEach(el=>el.classList.toggle('active',el.dataset.screen==='home'));
