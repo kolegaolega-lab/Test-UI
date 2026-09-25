@@ -5080,9 +5080,7 @@ function initLogoFallback() {
 }
 
 function initSW() {
-if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-  navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
-}
+  if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
       reg.addEventListener('updatefound', () => {
@@ -5102,7 +5100,6 @@ if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       });
     }).catch(err => console.warn('SW registration failed:', err));
 
-    /* Перезагрузка после активации нового SW */
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
