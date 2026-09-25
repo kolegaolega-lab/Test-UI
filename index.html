@@ -527,11 +527,11 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
           </div>
           <div>
             <label>Модель</label>
-            <select id="geminiModelSelect">
-              <option value="gemini-3.8-flash">Flash — быстрая и точная (по умолчанию)</option>
-              <option value="gemini-3.8-flash-lite">Flash Lite — самая быстрая</option>
-              <option value="gemini-3.8-pro">Pro — максимально точная</option>
-            </select>
+<select id="geminiModelSelect">
+  <option value="gemini-flash-latest">Flash — быстрая и точная (по умолчанию)</option>
+  <option value="gemini-flash-lite-latest">Flash Lite — самая быстрая</option>
+  <option value="gemini-pro-latest">Pro — максимально точная</option>
+</select>
           </div>
           <div>
             <label>Уровень размышлений</label>
@@ -1041,8 +1041,7 @@ const UNKNOWN_SEARCH_THRESHOLD = 20;
 
 /* === GEMINI === */
 const GEMINI_KEY = 'fbAuditGeminiKey';
-const GEMINI_MODEL_DEFAULT = 'gemini-3.8-flash';
-const GEMINI_MODEL_KEY = 'fbAuditGeminiModel';
+const GEMINI_MODEL_DEFAULT = 'gemini-flash-latest';
 const GEMINI_THINKING_KEY = 'fbAuditGeminiThinking';
 const GEMINI_THINKING_DEFAULT = 'medium';
 const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -2071,12 +2070,12 @@ function setGeminiKey(v) {
 function getGeminiModel() {
   try {
     const v = localStorage.getItem(GEMINI_MODEL_KEY);
-    if (v === 'gemini-3.8-flash' || v === 'gemini-3.8-flash-lite' || v === 'gemini-3.8-pro') return v;
+    if (v === 'gemini-flash-latest' || v === 'gemini-flash-lite-latest' || v === 'gemini-pro-latest') return v;
   } catch (e) {}
   return GEMINI_MODEL_DEFAULT;
 }
 function setGeminiModel(v) {
-  const allowed = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.8-pro'];
+  const allowed = ['gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-pro-latest'];
   if (allowed.indexOf(v) < 0) return;
   try { localStorage.setItem(GEMINI_MODEL_KEY, v); } catch (e) {}
 }
@@ -4189,7 +4188,6 @@ async function recognizeWithGemini() {
     const fileParts = await buildGeminiFileParts();
     if (!fileParts.length) throw new Error('Не удалось подготовить файлы.');
 
-    const prompt = buildPrompt();
     const model = getGeminiModel();
     const maxOutputTokens = 8192;
 
