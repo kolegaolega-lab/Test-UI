@@ -528,9 +528,8 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
           <div>
             <label>Модель</label>
 <select id="geminiModelSelect">
-  <option value="gemini-3.8-flash">Flash — быстрая и точная (по умолчанию)</option>
-  <option value="gemini-3.1-flash-lite">Flash Lite — самая быстрая</option>
-  <option value="gemini-3.1-pro-preview">Pro — максимально точная</option>
+  <option value="gemini-3.1-flash-lite">Flash Lite — рабочая (по умолчанию)</option>
+  <option value="gemini-3.1-pro-preview">Pro Preview — попробуйте, если Lite не устроит</option>
 </select>
           </div>
           <div>
@@ -1041,7 +1040,7 @@ const UNKNOWN_SEARCH_THRESHOLD = 20;
 
 /* === GEMINI === */
 const GEMINI_KEY = 'fbAuditGeminiKey';
-const GEMINI_MODEL_DEFAULT = 'gemini-3.8-flash';
+const GEMINI_MODEL_DEFAULT = 'gemini-3.1-flash-lite';
 const GEMINI_THINKING_KEY = 'fbAuditGeminiThinking';
 const GEMINI_THINKING_DEFAULT = 'medium';
 const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -2070,12 +2069,12 @@ function setGeminiKey(v) {
 function getGeminiModel() {
   try {
     const v = localStorage.getItem(GEMINI_MODEL_KEY);
-    if (v === 'gemini-3.8-flash' || v === 'gemini-3.1-flash-lite' || v === 'gemini-3.1-pro-preview') return v;
+    if (v === 'gemini-3.1-flash-lite' || v === 'gemini-3.1-pro-preview') return v;
   } catch (e) {}
   return GEMINI_MODEL_DEFAULT;
 }
 function setGeminiModel(v) {
-  const allowed = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-3.1-pro-preview'];
+  const allowed = ['gemini-3.1-flash-lite', 'gemini-3.1-pro-preview'];
   if (allowed.indexOf(v) < 0) return;
   try { localStorage.setItem(GEMINI_MODEL_KEY, v); } catch (e) {}
 }
