@@ -83,6 +83,8 @@ label{display:block;font-size:11px;font-weight:600;color:var(--text-secondary);m
 input[type=text],input[type=password]{width:100%;padding:11px 13px;border:1px solid var(--separator-opaque);border-radius:var(--r-sm);background:var(--bg-input);color:var(--text);font-size:15px;transition:border-color .18s,background .18s,box-shadow .18s;-webkit-appearance:none;appearance:none;min-height:44px;font-family:inherit;outline:none}
 input:focus{border-color:var(--accent);background:var(--bg-card);box-shadow:0 0 0 3.5px var(--accent-soft)}
 input::placeholder{color:var(--text-tertiary)}
+select{width:100%;padding:11px 36px 11px 13px;border:1px solid var(--separator-opaque);border-radius:var(--r-sm);background:var(--bg-input);color:var(--text);font-size:15px;font-family:inherit;min-height:44px;-webkit-appearance:none;appearance:none;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;transition:border-color .18s,box-shadow .18s,background-color .18s}
+select:focus{border-color:var(--accent);background-color:var(--bg-card);box-shadow:0 0 0 3.5px var(--accent-soft)}
 input:read-only{cursor:default}
 #autoDate,#autoTime{pointer-events:none;color:var(--text-secondary);background:var(--bg-card);border-color:var(--separator);cursor:default;-webkit-user-select:none;user-select:none}
 #autoDate:focus,#autoTime:focus{border-color:var(--separator);background:var(--bg-card);box-shadow:none;outline:none}
@@ -523,6 +525,22 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
             <label>API-ключ</label>
             <input id="geminiKeyInput" type="password" placeholder="AIza..." autocomplete="off" maxlength="200">
           </div>
+          <div>
+            <label>Модель</label>
+            <select id="geminiModelSelect">
+              <option value="gemini-3.8-flash">Flash — быстрая и точная (по умолчанию)</option>
+              <option value="gemini-3.8-flash-lite">Flash Lite — самая быстрая</option>
+              <option value="gemini-3.8-pro">Pro — максимально точная</option>
+            </select>
+          </div>
+          <div>
+            <label>Уровень размышлений</label>
+            <select id="geminiThinkingSelect">
+              <option value="low">Низкий — быстрее</option>
+              <option value="medium">Средний — по умолчанию</option>
+              <option value="high">Высокий — точнее</option>
+            </select>
+          </div>
           <p class="hint" style="margin:0">Ключ хранится только в вашем браузере.
             Получить: <b>aistudio.google.com</b> → Get API key.</p>
         </div>
@@ -679,7 +697,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.6.0 · +Gemini</div>
+  <div class="hint version">French Bakery Аудит · v9.7.0 · +Gemini · 2× прогон</div>
 
 </main>
 
@@ -979,8 +997,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
 <!-- ═══════════════ Тост обновления PWA ═══════════════ -->
 <div id="updateBanner" class="toast">Доступно обновление · нажмите, чтобы перезагрузить</div>
 
-<!-- ═══════════════ Библиотека Excel ═══════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- ═══════════════ Библиотека Excel (ленивая загрузка) ═══════════════ -->
 <script>
   'use strict';
   /* ═══════════════════════════════════════════
@@ -1016,7 +1033,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.6.0';
+const APP_VERSION = 'v9.7.0';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1024,11 +1041,14 @@ const UNKNOWN_SEARCH_THRESHOLD = 20;
 
 /* === GEMINI === */
 const GEMINI_KEY = 'fbAuditGeminiKey';
-const GEMINI_MODEL = 'gemini-3.8-flash';
+const GEMINI_MODEL_DEFAULT = 'gemini-3.8-flash';
+const GEMINI_MODEL_KEY = 'fbAuditGeminiModel';
+const GEMINI_THINKING_KEY = 'fbAuditGeminiThinking';
+const GEMINI_THINKING_DEFAULT = 'medium';
 const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_IMG_MAX_SIDE = 1600;
 const GEMINI_IMG_QUALITY = 0.85;
-const GEMINI_MAX_B64_BYTES = 15 * 1024 * 1024; /* ~15 MB base64 ≈ 11 MB бинарных */
+const GEMINI_MAX_B64_BYTES = 15 * 1024 * 1024;
 
 /* === КАТЕГОРИИ === */
 const CATEGORY_LABELS = { desserts: 'Десерты', lunches: 'Обеды', pastry: 'Выпечка' };
@@ -1084,6 +1104,7 @@ let _needsCheckNames = new Set();
 let _lastGeminiCsvs = { first: '', second: '' };
 let _cmpData = null;
 let _cmpNakls = [];
+let _xlsxPromise = null;
 
 /* ═══════════════════════════════════════════
    БАЗОВЫЕ УТИЛИТЫ
@@ -1543,7 +1564,7 @@ function deletePrice(name) {
 }
 
 /* ═══════════════════════════════════════════
-   FIFO
+   FIFO / СРОКИ
    ═══════════════════════════════════════════ */
 function getCheckMoment() { return new Date(); }
 function getWriteOffMoment(partyDate, shelfLife) {
@@ -2036,6 +2057,62 @@ async function restoreOwnerMode() {
     if (status === 'ok') setOwnerMode(true);
     else if (status === 'invalid') { try { localStorage.removeItem(ACCESS_KEY); } catch (e) {} setOwnerMode(false); }
   } catch (e) {}
+}
+
+/* ═══════════════════════════════════════════
+   GEMINI — настройки
+   ═══════════════════════════════════════════ */
+function getGeminiKey() {
+  try { return localStorage.getItem(GEMINI_KEY) || ''; } catch (e) { return ''; }
+}
+function setGeminiKey(v) {
+  try { localStorage.setItem(GEMINI_KEY, String(v || '').trim()); } catch (e) {}
+}
+function getGeminiModel() {
+  try {
+    const v = localStorage.getItem(GEMINI_MODEL_KEY);
+    if (v === 'gemini-3.8-flash' || v === 'gemini-3.8-flash-lite' || v === 'gemini-3.8-pro') return v;
+  } catch (e) {}
+  return GEMINI_MODEL_DEFAULT;
+}
+function setGeminiModel(v) {
+  const allowed = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.8-pro'];
+  if (allowed.indexOf(v) < 0) return;
+  try { localStorage.setItem(GEMINI_MODEL_KEY, v); } catch (e) {}
+}
+function getGeminiThinking() {
+  try {
+    const v = localStorage.getItem(GEMINI_THINKING_KEY);
+    if (v === 'low' || v === 'medium' || v === 'high') return v;
+  } catch (e) {}
+  return GEMINI_THINKING_DEFAULT;
+}
+function setGeminiThinking(v) {
+  if (v !== 'low' && v !== 'medium' && v !== 'high') return;
+  try { localStorage.setItem(GEMINI_THINKING_KEY, v); } catch (e) {}
+}
+
+/* ═══════════════════════════════════════════
+   XLSX — ленивая загрузка
+   ═══════════════════════════════════════════ */
+function loadXLSX() {
+  if (typeof XLSX !== 'undefined') return Promise.resolve(XLSX);
+  if (_xlsxPromise) return _xlsxPromise;
+  _xlsxPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.async = true;
+    s.onload = () => {
+      if (typeof XLSX !== 'undefined') resolve(XLSX);
+      else reject(new Error('Библиотека XLSX не инициализировалась'));
+    };
+    s.onerror = () => {
+      _xlsxPromise = null;
+      reject(new Error('Не удалось загрузить библиотеку Excel. Проверьте интернет.'));
+    };
+    document.head.appendChild(s);
+  });
+  return _xlsxPromise;
 }
   /* ═══════════════════════════════════════════
    PHOTO DB
@@ -3768,15 +3845,16 @@ async function applyCSV() {
 /* ═══════════════════════════════════════════
    EXPORT EXCEL
    ═══════════════════════════════════════════ */
-function exportExcel() {
+async function exportExcel() {
   if (exportBusy) return;
-  if (typeof XLSX === 'undefined') { alert('Библиотека Excel не загружена.'); return; }
   if (!Array.isArray(tableRows) || !tableRows.length) { alert('Нет данных.'); return; }
   exportBusy = true;
   const btn = $('exportBtn');
   if (btn) btn.classList.add('busy');
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   try {
+    await loadXLSX();
+    if (typeof XLSX === 'undefined') throw new Error('Библиотека Excel не загружена.');
     const allDates = new Set();
     tableRows.forEach(r => (r.incoming || []).forEach(p => { if (p.date) allDates.add(p.date); }));
     unknownRows.forEach(r => (r.incoming || []).forEach(p => { if (p.date) allDates.add(p.date); }));
@@ -3991,14 +4069,8 @@ ${catalogList}
 }
 
 /* ═══════════════════════════════════════════
-   GEMINI API
+   GEMINI — утилиты
    ═══════════════════════════════════════════ */
-function getGeminiKey() {
-  try { return localStorage.getItem(GEMINI_KEY) || ''; } catch (e) { return ''; }
-}
-function setGeminiKey(v) {
-  try { localStorage.setItem(GEMINI_KEY, String(v || '').trim()); } catch (e) {}
-}
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -4092,6 +4164,10 @@ function extractCsvFromGeminiText(text) {
   if (headerIdx > 0) csv = lines.slice(headerIdx).join('\n');
   return csv.trim();
 }
+
+/* ═══════════════════════════════════════════
+   RECOGNIZE — двойной прогон
+   ═══════════════════════════════════════════ */
 async function recognizeWithGemini() {
   if (shareBusy) return;
   const statusEl = $('shareStatus');
@@ -4114,12 +4190,17 @@ async function recognizeWithGemini() {
     if (!fileParts.length) throw new Error('Не удалось подготовить файлы.');
 
     const prompt = buildPrompt();
-    const url = `${GEMINI_API}/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const model = getGeminiModel();
+    const thinkingLevel = getGeminiThinking();
+    const maxOutputTokens = thinkingLevel === 'high' ? 16384 : 8192;
+
+    const url = `${GEMINI_API}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const body = {
       contents: [{ parts: [{ text: prompt }, ...fileParts] }],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 8192
+        maxOutputTokens: maxOutputTokens,
+        thinkingLevel: thinkingLevel
       }
     };
 
@@ -4138,6 +4219,7 @@ async function recognizeWithGemini() {
           if (errJson && errJson.error && errJson.error.message) msg = errJson.error.message;
         } catch (e) {}
         if (res.status === 400 && /API key/i.test(msg)) msg = 'Неверный API-ключ.';
+        if (res.status === 400 && /model/i.test(msg)) msg = 'Модель недоступна: ' + model;
         if (res.status === 429) msg = 'Превышен лимит запросов.';
         if (res.status === 413) msg = 'Файлы слишком большие.';
         if (res.status === 503 || /high demand|overload/i.test(msg)) msg = 'Сервер перегружен.';
@@ -4203,7 +4285,7 @@ async function recognizeWithGemini() {
 }
 
 /* ═══════════════════════════════════════════
-   SHARE TO AI (fallback через Web Share / скачивание)
+   SHARE TO AI — fallback через Web Share
    ═══════════════════════════════════════════ */
 async function shareToAI() {
   if (shareBusy) return;
@@ -4495,7 +4577,7 @@ function bindUI() {
   const salInput = $('salesPhotoInput');
   if (salInput) salInput.onchange = async e => { try { if (e.target.files && e.target.files.length) await addPhotos(e.target.files, 'sales'); } finally { e.target.value = ''; } };
 
-  /* === Gemini === */
+  /* Gemini */
   const geminiBtn = $('recognizeGeminiBtn');
   if (geminiBtn) geminiBtn.onclick = recognizeWithGemini;
 
@@ -4505,8 +4587,18 @@ function bindUI() {
     geminiKeyInput.addEventListener('input', () => setGeminiKey(geminiKeyInput.value));
     geminiKeyInput.addEventListener('focus', () => scrollFieldIntoView(geminiKeyInput));
   }
+  const geminiModelSelect = $('geminiModelSelect');
+  if (geminiModelSelect) {
+    geminiModelSelect.value = getGeminiModel();
+    geminiModelSelect.addEventListener('change', () => setGeminiModel(geminiModelSelect.value));
+  }
+  const geminiThinkingSelect = $('geminiThinkingSelect');
+  if (geminiThinkingSelect) {
+    geminiThinkingSelect.value = getGeminiThinking();
+    geminiThinkingSelect.addEventListener('change', () => setGeminiThinking(geminiThinkingSelect.value));
+  }
 
-  /* === Fallback: Web Share === */
+  /* Share fallback */
   const shareBtn = $('shareToAIBtn'); if (shareBtn) shareBtn.onclick = shareToAI;
 
   const copyPromptBtn = $('copyPromptBtn');
@@ -5115,8 +5207,7 @@ function initSW() {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
       reg.addEventListener('updatefound', () => {
-        const nw = reg.installing;
-        if (!nw) return;
+        const nw = reg.installing; if (!nw) return;
         nw.addEventListener('statechange', () => {
           if (nw.state === 'installed' && navigator.serviceWorker.controller) {
             const b = $('updateBanner');
@@ -5154,9 +5245,12 @@ function init() {
   }
   window.addEventListener('load', () => { measureHeader(); setTimeout(measureHeader, 100); setTimeout(measureHeader, 500); });
 
-  /* === Восстанавливаем Gemini-ключ в поле ввода === */
   const geminiKeyInput = $('geminiKeyInput');
   if (geminiKeyInput && !geminiKeyInput.value) geminiKeyInput.value = getGeminiKey();
+  const geminiModelSelect = $('geminiModelSelect');
+  if (geminiModelSelect) geminiModelSelect.value = getGeminiModel();
+  const geminiThinkingSelect = $('geminiThinkingSelect');
+  if (geminiThinkingSelect) geminiThinkingSelect.value = getGeminiThinking();
 
   const pt = $('point');
   if (pt) pt.addEventListener('input', () => { scheduleSessionSave(); updateResultMeta(); });
@@ -5202,13 +5296,12 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.6.0 · +Gemini · catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.7.0 · 2× Gemini · catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
 }
 
 /* ═══════════════════════════════════════════
    COMPARE TWO CSV
    ═══════════════════════════════════════════ */
-
 function cmpSplitLine(line, sep) {
   const out = []; let cur = ''; let inQ = false;
   for (let i = 0; i < line.length; i++) {
@@ -5620,8 +5713,10 @@ function cmpApplyMatched() {
   else showToast(`Применено совпавших: ${applied}`);
   closeCompareModal();
 }
-  
+
 function cmpBindUI() {
+  const openBtn = $('openCompareBtn'); if (openBtn) openBtn.onclick = openCompareModal;
+  const runBtn = $('cmpRunBtn'); if (runBtn) runBtn.onclick = cmpRunCompare;
   const clearBtn = $('cmpClearBtn');
   if (clearBtn) clearBtn.onclick = () => {
     const a = $('cmpCsv1'); const b = $('cmpCsv2');
@@ -5637,7 +5732,6 @@ function cmpBindUI() {
     _cmpData = null;
     _lastGeminiCsvs = { first: '', second: '' };
   };
-
   const addNaklBtn = $('cmpAddNaklBtn');
   if (addNaklBtn) addNaklBtn.onclick = () => {
     if (_cmpNakls.length >= 4) { showToast('Максимум 4 накладные'); return; }
