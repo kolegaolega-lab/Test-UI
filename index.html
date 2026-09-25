@@ -5636,6 +5636,7 @@ function cmpApplyMatched() {
     _cmpData = null;
     _lastGeminiCsvs = { first: '', second: '' };
   };
+  
   const addNaklBtn = $('cmpAddNaklBtn');
   if (addNaklBtn) addNaklBtn.onclick = () => {
     if (_cmpNakls.length >= 4) { showToast('Максимум 4 накладные'); return; }
