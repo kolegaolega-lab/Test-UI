@@ -5,7 +5,7 @@
 
 'use strict';
 
-const SW_VERSION = 'v13';
+const SW_VERSION = 'v14';
 const CACHE_SHELL = `fb-shell-${SW_VERSION}`;
 const CACHE_RUNTIME = `fb-runtime-${SW_VERSION}`;
 const CACHE_MAX_ENTRIES = 80;
