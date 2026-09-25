@@ -518,31 +518,32 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
         <button id="shareToAIBtn" class="primary">Отправить</button>
         <button id="copyPromptBtn" class="secondary">Промпт</button>
       </div>
-      <details class="settings" style="margin-top:12px">
-        <summary>Настройки распознавания</summary>
-        <div class="content">
-          <div>
-            <label>API-ключ</label>
-            <input id="geminiKeyInput" type="password" placeholder="AIza..." autocomplete="off" maxlength="200">
-          </div>
-          <div>
-            <label>Модель</label>
-<select id="geminiModelSelect">
-  <option value="gemini-3.1-flash-lite">Flash Lite — рабочая (по умолчанию)</option>
-  <option value="gemini-3.1-pro-preview">Pro Preview — попробуйте, если Lite не устроит</option>
-</select>
-          </div>
-          <div>
-            <label>Уровень размышлений</label>
-            <select id="geminiThinkingSelect">
-              <option value="low">Низкий — быстрее</option>
-              <option value="medium">Средний — по умолчанию</option>
-              <option value="high">Высокий — точнее</option>
-            </select>
-          </div>
-          <p class="hint" style="margin:0">Ключ хранится только в вашем браузере.
-            Получить: <b>aistudio.google.com</b> → Get API key.</p>
-        </div>
+<details class="settings" style="margin-top:12px">
+  <summary>Настройки распознавания</summary>
+  <div class="content">
+    <div>
+      <label>API-ключ</label>
+      <input id="geminiKeyInput" type="password" placeholder="AIza..." autocomplete="off" maxlength="200">
+    </div>
+    <div>
+      <label>Модель</label>
+      <div style="display:flex;gap:6px;align-items:stretch">
+        <select id="geminiModelSelect" style="flex:1"><option value="">Загрузка…</option></select>
+        <button type="button" id="refreshModelsBtn" class="secondary" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:16px" title="Обновить список моделей">↻</button>
+      </div>
+    </div>
+    <div>
+      <label>Уровень размышлений</label>
+      <select id="geminiThinkingSelect">
+        <option value="low">Низкий — быстрее</option>
+        <option value="medium">Средний — по умолчанию</option>
+        <option value="high">Высокий — точнее</option>
+      </select>
+    </div>
+    <p class="hint" style="margin:0">Ключ хранится только в вашем браузере.
+      Получить: <b>aistudio.google.com</b> → Get API key.</p>
+  </div>
+</details>
       </details>
       <div id="shareStatus" class="status"></div>
     </div>
@@ -2069,9 +2070,13 @@ function setGeminiKey(v) {
 function getGeminiModel() {
   try {
     const v = localStorage.getItem(GEMINI_MODEL_KEY);
-    if (v === 'gemini-3.1-flash-lite' || v === 'gemini-3.1-pro-preview') return v;
+    if (v) return v;
   } catch (e) {}
   return GEMINI_MODEL_DEFAULT;
+}
+function setGeminiModel(v) {
+  if (!v || typeof v !== 'string') return;
+  try { localStorage.setItem(GEMINI_MODEL_KEY, v); } catch (e) {}
 }
 function setGeminiModel(v) {
   const allowed = ['gemini-3.1-flash-lite', 'gemini-3.1-pro-preview'];
@@ -2088,6 +2093,147 @@ function getGeminiThinking() {
 function setGeminiThinking(v) {
   if (v !== 'low' && v !== 'medium' && v !== 'high') return;
   try { localStorage.setItem(GEMINI_THINKING_KEY, v); } catch (e) {}
+}
+  
+  /* ═══════════════════════════════════════════
+   GEMINI — динамический список моделей
+   ═══════════════════════════════════════════ */
+const GEMINI_MODELS_CACHE_KEY = 'fbAuditModelsCache';
+const GEMINI_MODELS_CACHE_TTL = 24 * 60 * 60 * 1000;
+const GEMINI_TEST_IMAGE_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
+function loadModelsCache() {
+  try {
+    const raw = localStorage.getItem(GEMINI_MODELS_CACHE_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.models) || !d.ts) return null;
+    if (Date.now() - d.ts > GEMINI_MODELS_CACHE_TTL) return null;
+    return d.models;
+  } catch (e) { return null; }
+}
+function saveModelsCache(models) {
+  try { localStorage.setItem(GEMINI_MODELS_CACHE_KEY, JSON.stringify({ ts: Date.now(), models })); } catch (e) {}
+}
+function clearModelsCache() {
+  try { localStorage.removeItem(GEMINI_MODELS_CACHE_KEY); } catch (e) {}
+}
+
+function prettyModelName(id) {
+  const hasPro = /pro/.test(id);
+  const hasLite = /lite/.test(id);
+  const hasFlash = /flash/.test(id);
+  const preview = /preview/.test(id);
+  let base = 'Модель';
+  if (hasFlash && hasLite) base = 'Flash Lite';
+  else if (hasFlash) base = 'Flash';
+  else if (hasPro) base = 'Pro';
+  let suffix = preview ? ' (preview)' : '';
+  return base + suffix + ' — ' + id;
+}
+
+async function testGeminiModel(apiKey, id) {
+  const url = `${GEMINI_API}/${id}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const body = {
+    contents: [{ parts: [
+      { text: 'ok' },
+      { inline_data: { mime_type: 'image/png', data: GEMINI_TEST_IMAGE_B64 } }
+    ]}],
+    generationConfig: { maxOutputTokens: 3, temperature: 0 }
+  };
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return !!(data && data.candidates && data.candidates.length);
+  } catch (e) { return false; }
+}
+
+async function discoverGeminiModels(apiKey, onProgress) {
+  const listRes = await fetch(`${GEMINI_API}?key=${encodeURIComponent(apiKey)}`);
+  if (!listRes.ok) throw new Error('Не удалось получить список моделей');
+  const listData = await listRes.json();
+  const all = (listData.models || [])
+    .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.indexOf('generateContent') >= 0)
+    .map(m => ({ id: String(m.name || '').replace('models/', ''), displayName: m.displayName || '' }))
+    .filter(m => /^gemini-/.test(m.id))
+    .filter(m => !/tts|image|nano|robotics|computer-use|research|lyria|antigravity|omni|transcribe|clip|embedding|aqa|vision|translate/i.test(m.id));
+
+  const groups = { flashLite: [], flash: [], pro: [] };
+  all.forEach(m => {
+    if (/flash-lite/.test(m.id)) groups.flashLite.push(m);
+    else if (/pro/.test(m.id)) groups.pro.push(m);
+    else if (/flash/.test(m.id)) groups.flash.push(m);
+  });
+  Object.keys(groups).forEach(k => groups[k].sort((a, b) => b.id.localeCompare(a.id)));
+
+  const toTest = [];
+  ['flashLite', 'flash', 'pro'].forEach(k => {
+    const stable = groups[k].filter(m => !/preview/.test(m.id));
+    const preview = groups[k].filter(m => /preview/.test(m.id));
+    toTest.push(...stable.slice(0, 1));
+    toTest.push(...preview.slice(0, 1));
+  });
+
+  const working = [];
+  for (let i = 0; i < toTest.length; i++) {
+    const m = toTest[i];
+    if (onProgress) onProgress(i + 1, toTest.length, m.id);
+    const ok = await testGeminiModel(apiKey, m.id);
+    if (ok) working.push(m);
+    if (i < toTest.length - 1) await new Promise(r => setTimeout(r, 800));
+  }
+  if (!working.length) throw new Error('Ни одна модель не ответила');
+  return working;
+}
+
+function fillModelSelect(models) {
+  const sel = $('geminiModelSelect');
+  if (!sel) return;
+  const current = sel.value || getGeminiModel();
+  sel.innerHTML = '';
+  models.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = prettyModelName(m.id);
+    sel.appendChild(opt);
+  });
+  const hasCurrent = models.some(m => m.id === current);
+  sel.value = hasCurrent ? current : models[0].id;
+  setGeminiModel(sel.value);
+}
+
+async function refreshModelSelect(force) {
+  const sel = $('geminiModelSelect');
+  const statusEl = $('shareStatus');
+  const setStatus = (cls, text) => { if (statusEl) { statusEl.className = 'status show ' + cls; statusEl.textContent = text; } };
+  const apiKey = getGeminiKey();
+  if (!apiKey) {
+    fillModelSelect([{ id: GEMINI_MODEL_DEFAULT, displayName: '' }]);
+    return;
+  }
+  if (!force) {
+    const cached = loadModelsCache();
+    if (cached && cached.length) { fillModelSelect(cached); return; }
+  } else {
+    clearModelsCache();
+  }
+  if (sel) sel.innerHTML = '<option value="">Обновление списка моделей…</option>';
+  try {
+    const working = await discoverGeminiModels(apiKey, (i, n, id) => {
+      if (sel) sel.innerHTML = `<option value="">Проверка моделей (${i}/${n}): ${id}…</option>`;
+    });
+    saveModelsCache(working);
+    fillModelSelect(working);
+    setStatus('ok', `Найдено рабочих моделей: ${working.length}`);
+  } catch (e) {
+    fillModelSelect([{ id: GEMINI_MODEL_DEFAULT, displayName: '' }]);
+    setStatus('warn', 'Не удалось обновить список моделей. Использую ' + GEMINI_MODEL_DEFAULT);
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -4579,9 +4725,20 @@ function bindUI() {
   const geminiKeyInput = $('geminiKeyInput');
   if (geminiKeyInput) {
     geminiKeyInput.value = getGeminiKey();
-    geminiKeyInput.addEventListener('input', () => setGeminiKey(geminiKeyInput.value));
+    let _modelRefreshTimer = null;
+    geminiKeyInput.addEventListener('input', () => {
+      setGeminiKey(geminiKeyInput.value);
+      if (_modelRefreshTimer) clearTimeout(_modelRefreshTimer);
+      _modelRefreshTimer = setTimeout(() => {
+        _modelRefreshTimer = null;
+        clearModelsCache();
+        refreshModelSelect(false);
+      }, 1500);
+    });
     geminiKeyInput.addEventListener('focus', () => scrollFieldIntoView(geminiKeyInput));
   }
+  const refreshModelsBtn = $('refreshModelsBtn');
+  if (refreshModelsBtn) refreshModelsBtn.onclick = () => refreshModelSelect(true);
   const geminiModelSelect = $('geminiModelSelect');
   if (geminiModelSelect) {
     geminiModelSelect.value = getGeminiModel();
@@ -5242,8 +5399,7 @@ function init() {
 
   const geminiKeyInput = $('geminiKeyInput');
   if (geminiKeyInput && !geminiKeyInput.value) geminiKeyInput.value = getGeminiKey();
-  const geminiModelSelect = $('geminiModelSelect');
-  if (geminiModelSelect) geminiModelSelect.value = getGeminiModel();
+  refreshModelSelect(false);
   const geminiThinkingSelect = $('geminiThinkingSelect');
   if (geminiThinkingSelect) geminiThinkingSelect.value = getGeminiThinking();
 
