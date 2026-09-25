@@ -5078,18 +5078,37 @@ function initLogoFallback() {
 }
 
 function initSW() {
-  if (!('serviceWorker' in navigator)) return;
+if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+  navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+}
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
       reg.addEventListener('updatefound', () => {
-        const nw = reg.installing; if (!nw) return;
+        const nw = reg.installing;
+        if (!nw) return;
         nw.addEventListener('statechange', () => {
           if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            const b = $('updateBanner'); if (b) b.classList.add('show');
+            const b = $('updateBanner');
+            if (b) {
+              b.classList.add('show');
+              b.onclick = () => {
+                if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+              };
+            }
           }
         });
       });
     }).catch(err => console.warn('SW registration failed:', err));
+
+    /* Перезагрузка после активации нового SW */
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  });
+}
   });
 }
 
