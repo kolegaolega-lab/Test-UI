@@ -4191,16 +4191,14 @@ async function recognizeWithGemini() {
 
     const prompt = buildPrompt();
     const model = getGeminiModel();
-    const thinkingLevel = getGeminiThinking();
-    const maxOutputTokens = thinkingLevel === 'high' ? 16384 : 8192;
+    const maxOutputTokens = 8192;
 
     const url = `${GEMINI_API}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const body = {
       contents: [{ parts: [{ text: prompt }, ...fileParts] }],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: maxOutputTokens,
-        thinkingLevel: thinkingLevel
+        maxOutputTokens: maxOutputTokens
       }
     };
 
