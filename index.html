@@ -543,7 +543,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     <p class="hint" style="margin:0">Ключ хранится только в вашем браузере.
       Получить: <b>aistudio.google.com</b> → Get API key.</p>
   </div>
-</details>
+
       </details>
       <div id="shareStatus" class="status"></div>
     </div>
@@ -1041,6 +1041,7 @@ const UNKNOWN_SEARCH_THRESHOLD = 20;
 
 /* === GEMINI === */
 const GEMINI_KEY = 'fbAuditGeminiKey';
+const GEMINI_MODEL_KEY = 'fbAuditGeminiModel';
 const GEMINI_MODEL_DEFAULT = 'gemini-3.1-flash-lite';
 const GEMINI_THINKING_KEY = 'fbAuditGeminiThinking';
 const GEMINI_THINKING_DEFAULT = 'medium';
@@ -2078,11 +2079,6 @@ function setGeminiModel(v) {
   if (!v || typeof v !== 'string') return;
   try { localStorage.setItem(GEMINI_MODEL_KEY, v); } catch (e) {}
 }
-function setGeminiModel(v) {
-  const allowed = ['gemini-3.1-flash-lite', 'gemini-3.1-pro-preview'];
-  if (allowed.indexOf(v) < 0) return;
-  try { localStorage.setItem(GEMINI_MODEL_KEY, v); } catch (e) {}
-}
 function getGeminiThinking() {
   try {
     const v = localStorage.getItem(GEMINI_THINKING_KEY);
@@ -2100,7 +2096,23 @@ function setGeminiThinking(v) {
    ═══════════════════════════════════════════ */
 const GEMINI_MODELS_CACHE_KEY = 'fbAuditModelsCache';
 const GEMINI_MODELS_CACHE_TTL = 24 * 60 * 60 * 1000;
-const GEMINI_TEST_IMAGE_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+let _geminiTestImageCache = null;
+function getGeminiTestImage() {
+  if (_geminiTestImageCache) return _geminiTestImageCache;
+  const canvas = document.createElement('canvas');
+  canvas.width = 64; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 64, 64);
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('T', 32, 32);
+  const dataUrl = canvas.toDataURL('image/png');
+  _geminiTestImageCache = dataUrl.split(',')[1];
+  return _geminiTestImageCache;
+}
 
 function loadModelsCache() {
   try {
@@ -2131,13 +2143,12 @@ function prettyModelName(id) {
   let suffix = preview ? ' (preview)' : '';
   return base + suffix + ' — ' + id;
 }
-
 async function testGeminiModel(apiKey, id) {
   const url = `${GEMINI_API}/${id}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const body = {
     contents: [{ parts: [
       { text: 'ok' },
-      { inline_data: { mime_type: 'image/png', data: GEMINI_TEST_IMAGE_B64 } }
+      { inline_data: { mime_type: 'image/png', data: getGeminiTestImage() } }
     ]}],
     generationConfig: { maxOutputTokens: 3, temperature: 0 }
   };
@@ -2147,10 +2158,27 @@ async function testGeminiModel(apiKey, id) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    if (!res.ok) return false;
-    const data = await res.json();
-    return !!(data && data.candidates && data.candidates.length);
-  } catch (e) { return false; }
+    if (res.ok) {
+      const data = await res.json();
+      return !!(data && data.candidates && data.candidates.length);
+    }
+    let msg = '';
+    try {
+      const errJson = await res.json();
+      if (errJson && errJson.error && errJson.error.message) msg = errJson.error.message;
+    } catch (e) {}
+    if (res.status === 404) return false;
+    if (res.status === 429 || res.status === 503 || res.status === 500) return true;
+    if (res.status === 400) {
+      if (/api key|permission|quota|billing/i.test(msg)) return false;
+      if (/not found|not supported|does not support/i.test(msg)) return false;
+      return true;
+    }
+    if (res.status === 401 || res.status === 403) return false;
+    return false;
+  } catch (e) {
+    return true;
+  }
 }
 
 async function discoverGeminiModels(apiKey, onProgress) {
@@ -4333,6 +4361,7 @@ async function recognizeWithGemini() {
     const fileParts = await buildGeminiFileParts();
     if (!fileParts.length) throw new Error('Не удалось подготовить файлы.');
 
+    const prompt = buildPrompt();
     const model = getGeminiModel();
     const maxOutputTokens = 8192;
 
