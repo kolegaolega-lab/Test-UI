@@ -508,16 +508,16 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   <div class="section">
     <div class="section-header">
       <h2>Распознавание</h2>
-      <p class="desc">Отправьте материалы в ИИ — он вернёт CSV с приходами и продажами.</p>
+      <p class="desc">Отправьте материалы — приложение вернёт CSV с приходами и продажами.</p>
     </div>
     <div class="section-body">
-      <button id="recognizeGeminiBtn" class="success block">🤖 Распознать (Gemini)</button>
+      <button id="recognizeGeminiBtn" class="success block">Распознать</button>
       <div class="row" style="margin-top:8px">
         <button id="shareToAIBtn" class="primary">Отправить</button>
         <button id="copyPromptBtn" class="secondary">Промпт</button>
       </div>
       <details class="settings" style="margin-top:12px">
-        <summary>Настройки Gemini API</summary>
+        <summary>Настройки распознавания</summary>
         <div class="content">
           <div>
             <label>API-ключ</label>
@@ -1081,6 +1081,7 @@ let _reportView = null;
 let _priceEditOriginal = null;
 let _problemFilter = false;
 let _needsCheckNames = new Set();
+let _lastGeminiCsvs = { first: '', second: '' };
 let _cmpData = null;
 let _cmpNakls = [];
 
@@ -4099,7 +4100,7 @@ async function recognizeWithGemini() {
   };
 
   const apiKey = getGeminiKey();
-  if (!apiKey) { setStatus('err', 'Введите Gemini API-ключ в настройках.'); return; }
+  if (!apiKey) { setStatus('err', 'Введите API-ключ в настройках.'); return; }
   if (!isValidCategory(_activeCategory)) { setStatus('err', 'Сначала выберите категорию.'); return; }
   const items = await getPhotos();
   if (!items.length) { setStatus('info', 'Сначала загрузите материалы.'); return; }
@@ -4113,8 +4114,6 @@ async function recognizeWithGemini() {
     if (!fileParts.length) throw new Error('Не удалось подготовить файлы.');
 
     const prompt = buildPrompt();
-    setStatus('info', `Отправка в Gemini (${fileParts.length} файл.)…`);
-
     const url = `${GEMINI_API}/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const body = {
       contents: [{ parts: [{ text: prompt }, ...fileParts] }],
@@ -4124,45 +4123,77 @@ async function recognizeWithGemini() {
       }
     };
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+    setStatus('info', 'Отправка 2 запросов…');
 
-    if (!res.ok) {
-      let msg = `HTTP ${res.status}`;
-      try {
-        const errJson = await res.json();
-        if (errJson && errJson.error && errJson.error.message) msg = errJson.error.message;
-      } catch (e) {}
-      if (res.status === 400 && /API key/i.test(msg)) msg = 'Неверный API-ключ.';
-      if (res.status === 429) msg = 'Превышен лимит запросов. Попробуйте через минуту.';
-      if (res.status === 413) msg = 'Файлы слишком большие. Уменьшите количество фото.';
-      throw new Error(msg);
+    const sendOne = async (label) => {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const errJson = await res.json();
+          if (errJson && errJson.error && errJson.error.message) msg = errJson.error.message;
+        } catch (e) {}
+        if (res.status === 400 && /API key/i.test(msg)) msg = 'Неверный API-ключ.';
+        if (res.status === 429) msg = 'Превышен лимит запросов.';
+        if (res.status === 413) msg = 'Файлы слишком большие.';
+        if (res.status === 503 || /high demand|overload/i.test(msg)) msg = 'Сервер перегружен.';
+        throw new Error(label + ': ' + msg);
+      }
+      const data = await res.json();
+      const cand = data && data.candidates && data.candidates[0];
+      if (!cand) throw new Error(label + ': нет кандидатов в ответе.');
+      if (cand.finishReason === 'SAFETY') throw new Error(label + ': ответ заблокирован фильтрами безопасности.');
+      const parts = (cand.content && cand.content.parts) || [];
+      const text = parts.map(p => p.text || '').join('');
+      if (!text) throw new Error(label + ': пустой ответ.');
+      const csv = extractCsvFromGeminiText(text);
+      if (!csv || !/;/.test(csv)) throw new Error(label + ': ответ не похож на CSV.');
+      return csv;
+    };
+
+    const results = await Promise.allSettled([
+      sendOne('Прогон 1'),
+      sendOne('Прогон 2')
+    ]);
+
+    const csv1 = results[0].status === 'fulfilled' ? results[0].value : null;
+    const csv2 = results[1].status === 'fulfilled' ? results[1].value : null;
+    const err1 = results[0].status === 'rejected' ? (results[0].reason && results[0].reason.message) : '';
+    const err2 = results[1].status === 'rejected' ? (results[1].reason && results[1].reason.message) : '';
+
+    if (!csv1 && !csv2) {
+      throw new Error(err1 || err2 || 'Оба запроса не удались.');
     }
 
-    const data = await res.json();
-    const cand = data && data.candidates && data.candidates[0];
-    if (!cand) throw new Error('Gemini не вернул кандидатов.');
-    if (cand.finishReason === 'SAFETY') throw new Error('Ответ заблокирован фильтрами безопасности.');
-    const parts = (cand.content && cand.content.parts) || [];
-    const text = parts.map(p => p.text || '').join('');
-    if (!text) throw new Error('Пустой ответ от Gemini.');
-
-    const csv = extractCsvFromGeminiText(text);
-    if (!csv || !/;/.test(csv)) throw new Error('Ответ не похож на CSV.');
-
+    const primaryCsv = csv1 || csv2;
     const csvField = $('csvInput');
     if (csvField) {
-      csvField.value = csv;
+      csvField.value = primaryCsv;
       autoResizeTextarea();
       updateCsvCounter();
       scheduleSessionSave();
     }
-    setStatus('ok', `Готово. CSV вставлен в «Импорт данных» (${csv.split(/\r?\n/).length} строк).`);
-    showToast('Gemini вернул CSV');
-    if (csvField) setTimeout(() => csvField.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+
+    _lastGeminiCsvs = { first: csv1 || '', second: csv2 || '' };
+
+    if (csv1 && csv2) {
+      const lines = primaryCsv.split(/\r?\n/).length;
+      setStatus('ok', `Получено 2 ответа (${lines} строк в основном). Открываю сверку…`);
+      showToast('Открываю сверку двух CSV');
+      setTimeout(() => openCompareModal({ first: csv1, second: csv2 }), 450);
+    } else if (csv1) {
+      setStatus('warn', `Второй прогон не удался. CSV первого прогона вставлен. ${err2 ? 'Причина: ' + err2 : ''}`);
+      showToast('CSV вставлен (1 из 2)');
+      if (csvField) setTimeout(() => csvField.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+    } else {
+      setStatus('warn', `Первый прогон не удался. CSV второго прогона вставлен. ${err1 ? 'Причина: ' + err1 : ''}`);
+      showToast('CSV вставлен (1 из 2)');
+      if (csvField) setTimeout(() => csvField.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+    }
   } catch (e) {
     setStatus('err', 'Ошибка: ' + (e.message || e));
   } finally {
@@ -5353,7 +5384,7 @@ function cmpRenderNakls() {
   });
 }
 
-function openCompareModal() {
+function openCompareModal(prefill) {
   const st = $('cmpStats'); if (st) st.style.display = 'none';
   const res = $('cmpResults'); if (res) res.innerHTML = '';
   const chk = $('cmpCheckResults'); if (chk) chk.innerHTML = '';
@@ -5361,6 +5392,19 @@ function openCompareModal() {
   _cmpData = null;
   if (_cmpNakls.length === 0) _cmpNakls = [{ date: '', num: '', lastNum: '', total: '' }];
   cmpRenderNakls();
+
+  const t1 = $('cmpCsv1');
+  const t2 = $('cmpCsv2');
+
+  if (t1) {
+    if (prefill && prefill.first != null) t1.value = prefill.first;
+    else if (!t1.value.trim() && _lastGeminiCsvs.first) t1.value = _lastGeminiCsvs.first;
+  }
+  if (t2) {
+    if (prefill && prefill.second != null) t2.value = prefill.second;
+    else if (!t2.value.trim() && _lastGeminiCsvs.second) t2.value = _lastGeminiCsvs.second;
+  }
+
   openModal('compareModal');
 }
 function closeCompareModal() { closeModal('compareModal'); }
@@ -5577,9 +5621,6 @@ function cmpApplyMatched() {
   closeCompareModal();
 }
 
-function cmpBindUI() {
-  const openBtn = $('openCompareBtn'); if (openBtn) openBtn.onclick = openCompareModal;
-  const runBtn = $('cmpRunBtn'); if (runBtn) runBtn.onclick = cmpRunCompare;
   const clearBtn = $('cmpClearBtn');
   if (clearBtn) clearBtn.onclick = () => {
     const a = $('cmpCsv1'); const b = $('cmpCsv2');
@@ -5593,6 +5634,7 @@ function cmpBindUI() {
     const res = $('cmpResults'); if (res) res.innerHTML = '';
     const ap = $('cmpApplyBtn'); if (ap) ap.style.display = 'none';
     _cmpData = null;
+    _lastGeminiCsvs = { first: '', second: '' };
   };
   const addNaklBtn = $('cmpAddNaklBtn');
   if (addNaklBtn) addNaklBtn.onclick = () => {
