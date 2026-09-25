@@ -5620,7 +5620,8 @@ function cmpApplyMatched() {
   else showToast(`Применено совпавших: ${applied}`);
   closeCompareModal();
 }
-
+  
+function cmpBindUI() {
   const clearBtn = $('cmpClearBtn');
   if (clearBtn) clearBtn.onclick = () => {
     const a = $('cmpCsv1'); const b = $('cmpCsv2');
