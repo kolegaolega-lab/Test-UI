@@ -4466,17 +4466,39 @@ async function recognizeWithGemini() {
 
     if (csv1 && csv2) {
       const lines = primaryCsv.split(/\r?\n/).length;
-      setStatus('ok', `Получено 2 ответа (${lines} строк в основном). Открываю сверку…`);
+      setStatus('info', `Получено 2 ответа (${lines} строк). Применяю первый…`);
+      showToast('Применяю CSV первого прогона');
+
+      // Даём статусу отрисоваться и снять блокировку кнопки «Применить»
+      await new Promise(r => setTimeout(r, 250));
+
+      try {
+        await applyCSV();
+      } catch (e) {
+        console.warn('Auto-apply failed:', e);
+      }
+
+      // applyCSV может показать модалки «Не в справочнике» или «Без категории»
+      // через 300 мс — ждём, потом закрываем их, чтобы не мешали сверке
+      await new Promise(r => setTimeout(r, 500));
+      try { closeUnknownModal(); } catch (e) {}
+      try { closeNoCategoryModal(); } catch (e) {}
+
+      setStatus('ok', `CSV первого прогона применён (${lines} строк). Открываю сверку…`);
       showToast('Открываю сверку двух CSV');
-      setTimeout(() => openCompareModal({ first: csv1, second: csv2 }), 450);
+      setTimeout(() => openCompareModal({ first: csv1, second: csv2 }), 300);
     } else if (csv1) {
-      setStatus('warn', `Второй прогон не удался. CSV первого прогона вставлен. ${err2 ? 'Причина: ' + err2 : ''}`);
-      showToast('CSV вставлен (1 из 2)');
-      if (csvField) setTimeout(() => csvField.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+      setStatus('info', 'Второй прогон не удался. Применяю первый CSV…');
+      showToast('Применяю CSV первого прогона');
+      await new Promise(r => setTimeout(r, 250));
+      try { await applyCSV(); } catch (e) { console.warn('Auto-apply failed:', e); }
+      setStatus('warn', `Применён только CSV первого прогона. ${err2 ? 'Причина сбоя второго: ' + err2 : ''}`);
     } else {
-      setStatus('warn', `Первый прогон не удался. CSV второго прогона вставлен. ${err1 ? 'Причина: ' + err1 : ''}`);
-      showToast('CSV вставлен (1 из 2)');
-      if (csvField) setTimeout(() => csvField.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+      setStatus('info', 'Первый прогон не удался. Применяю второй CSV…');
+      showToast('Применяю CSV второго прогона');
+      await new Promise(r => setTimeout(r, 250));
+      try { await applyCSV(); } catch (e) { console.warn('Auto-apply failed:', e); }
+      setStatus('warn', `Применён только CSV второго прогона. ${err1 ? 'Причина сбоя первого: ' + err1 : ''}`);
     }
   } catch (e) {
     setStatus('err', 'Ошибка: ' + (e.message || e));
