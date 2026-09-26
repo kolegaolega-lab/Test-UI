@@ -2421,7 +2421,7 @@ function dailyRender() {
     return;
   }
 
-  _dailyAccum.sort((a, b) => a.iso.localeCompare(b.iso));
+  _dailyAccum.sort((a, b) => b.iso.localeCompare(a.iso));
   list.innerHTML = '';
   _dailyAccum.forEach(d => {
     const row = document.createElement('div');
@@ -2584,8 +2584,10 @@ function buildDailyCsv() {
     }
   }
 
-  const sortedDates = _dailyAccum.map(d => ({ iso: d.iso, label: d.label }));
-  const lastDate = sortedDates[sortedDates.length - 1];
+  const sortedDatesAsc = _dailyAccum.map(d => ({ iso: d.iso, label: d.label })).sort((a, b) => a.iso.localeCompare(b.iso));
+  const lastDate = sortedDatesAsc[sortedDatesAsc.length - 1]; // самая свежая — для продаж
+  // Для вывода колонок — от свежей к старой
+  const sortedDates = [...sortedDatesAsc].reverse();
 
   const header = ['Наименование', ...sortedDates.map(d => `Получено за ${d.label}`), 'Продано сегодня', 'Срок годности'];
   const namesSorted = [...allNames].sort((a, b) => String(a).localeCompare(String(b), 'ru'));
