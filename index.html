@@ -532,14 +532,6 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
         <button type="button" id="refreshModelsBtn" class="secondary" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:16px" title="Обновить список моделей">↻</button>
       </div>
     </div>
-    <div>
-      <label>Уровень размышлений</label>
-      <select id="geminiThinkingSelect">
-        <option value="low">Низкий — быстрее</option>
-        <option value="medium">Средний — по умолчанию</option>
-        <option value="high">Высокий — точнее</option>
-      </select>
-    </div>
     <p class="hint" style="margin:0">Ключ хранится только в вашем браузере.
       Получить: <b>aistudio.google.com</b> → Get API key.</p>
   </div>
@@ -4812,11 +4804,6 @@ function bindUI() {
   if (geminiModelSelect) {
     geminiModelSelect.value = getGeminiModel();
     geminiModelSelect.addEventListener('change', () => setGeminiModel(geminiModelSelect.value));
-  }
-  const geminiThinkingSelect = $('geminiThinkingSelect');
-  if (geminiThinkingSelect) {
-    geminiThinkingSelect.value = getGeminiThinking();
-    geminiThinkingSelect.addEventListener('change', () => setGeminiThinking(geminiThinkingSelect.value));
   }
 
   /* Share fallback */
