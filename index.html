@@ -1752,7 +1752,13 @@ function parseCSV(text, referenceDate) {
   for (let i = 1; i < maxRow; i++) {
     const vals = matrix[i].slice(0, maxCols).map(v => String(v ?? '').trim());
     if (!vals.some(v => v !== '')) continue;
-    const name = safeStr(vals[idxName], MAX_NAME);
+    let name = safeStr(vals[idxName], MAX_NAME);
+    if (!name) continue;
+    // Убираем префикс «Т » (транспортная позиция)
+    name = name.replace(/^Т\s+/, '');
+    // Убираем суффиксы «п/ф», «П/Ф», «полуфабрикат»
+    name = name.replace(/\s+п\/ф\s*$/i, '').replace(/\s+полуфабрикат\s*$/i, '');
+    name = name.trim();
     if (!name) continue;
     if (name.startsWith('#')) continue;
     if (/^[-–—•·*]\s/.test(name)) continue;
