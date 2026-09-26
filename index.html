@@ -518,29 +518,29 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
         <button id="shareToAIBtn" class="primary">Отправить</button>
         <button id="copyPromptBtn" class="secondary">Промпт</button>
       </div>
-<details class="settings" style="margin-top:12px">
-  <summary>Настройки распознавания</summary>
-  <div class="content">
-    <div>
-      <label>API-ключ</label>
-      <input id="geminiKeyInput" type="password" placeholder="AIza..." autocomplete="off" maxlength="200">
-    </div>
-    <div>
-      <label>Модель</label>
-      <div style="display:flex;gap:6px;align-items:stretch">
-        <select id="geminiModelSelect" style="flex:1"><option value="">Загрузка…</option></select>
-        <button type="button" id="refreshModelsBtn" class="secondary" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:16px" title="Обновить список моделей">↻</button>
-      </div>
-    </div>
-    <p class="hint" style="margin:0">Ключ хранится только в вашем браузере.
-      Получить: <b>aistudio.google.com</b> → Get API key.</p>
-  </div>
-  </details>
+      <details class="settings" style="margin-top:12px">
+        <summary>Настройки распознавания</summary>
+        <div class="content">
+          <div>
+            <label>API-ключ</label>
+            <input id="geminiKeyInput" type="password" placeholder="AIza..." autocomplete="off" maxlength="200">
+          </div>
+          <div>
+            <label>Модель</label>
+            <div style="display:flex;gap:6px;align-items:stretch">
+              <select id="geminiModelSelect" style="flex:1"><option value="">Загрузка…</option></select>
+              <button type="button" id="refreshModelsBtn" class="secondary" style="flex:0 0 auto;min-height:44px;padding:0 14px;font-size:16px" title="Обновить список моделей">↻</button>
+            </div>
+          </div>
+          <p class="hint" style="margin:0">Ключ хранится только в вашем браузере.
+            Получить: <b>aistudio.google.com</b> → Get API key.</p>
+        </div>
+      </details>
       <div id="shareStatus" class="status"></div>
     </div>
   </div>
 
-    <!-- ═══════════════ Пакет по датам ═══════════════ -->
+  <!-- ═══════════════ Пакет по датам ═══════════════ -->
   <div class="section" id="dailySection">
     <div class="section-header">
       <h2>Пакет по датам</h2>
@@ -565,7 +565,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
       </div>
     </div>
   </div>
-  
+
   <!-- ═══════════════ Импорт данных ═══════════════ -->
   <div class="section">
     <div class="section-header">
@@ -714,7 +714,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.7.0 · +Gemini · 2× прогон</div>
+  <div class="hint version">French Bakery Аудит · v9.8.0 · +Gemini · пакет по датам</div>
 
 </main>
 
@@ -1050,7 +1050,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.7.0';
+const APP_VERSION = 'v9.8.0';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1060,12 +1060,15 @@ const UNKNOWN_SEARCH_THRESHOLD = 20;
 const GEMINI_KEY = 'fbAuditGeminiKey';
 const GEMINI_MODEL_KEY = 'fbAuditGeminiModel';
 const GEMINI_MODEL_DEFAULT = 'gemini-3.1-flash-lite';
-const GEMINI_THINKING_KEY = 'fbAuditGeminiThinking';
-const GEMINI_THINKING_DEFAULT = 'medium';
 const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_IMG_MAX_SIDE = 1600;
 const GEMINI_IMG_QUALITY = 0.85;
 const GEMINI_MAX_B64_BYTES = 15 * 1024 * 1024;
+const GEMINI_MODELS_CACHE_KEY = 'fbAuditModelsCache';
+const GEMINI_MODELS_CACHE_TTL = 24 * 60 * 60 * 1000;
+
+/* === Пакет по датам === */
+const DAILY_KEY = 'fbAuditDailyAccumulator';
 
 /* === КАТЕГОРИИ === */
 const CATEGORY_LABELS = { desserts: 'Десерты', lunches: 'Обеды', pastry: 'Выпечка' };
@@ -1122,9 +1125,10 @@ let _lastGeminiCsvs = { first: '', second: '' };
 let _cmpData = null;
 let _cmpNakls = [];
 let _xlsxPromise = null;
-  /* Пакет по датам */
-const DAILY_KEY = 'fbAuditDailyAccumulator';
 let _dailyAccum = [];
+let _dailyEditing = null;
+let _modelsRefreshScheduled = false;
+let _geminiTestImageCache = null;
 
 /* ═══════════════════════════════════════════
    БАЗОВЫЕ УТИЛИТЫ
@@ -1251,7 +1255,7 @@ function getCategoryProducts(cat) {
 function getCategoryEmoji(cat) { return CATEGORY_EMOJI[cat] || '—'; }
 function getCategoryLabel(cat) { return CATEGORY_LABELS[cat] || 'Без категории'; }
 
-/* === Дата/время === */
+/* === Дата/время в шапке === */
 function updateAutoDate() { const el = $('autoDate'); if (el) el.value = formatDateRu(getTodayStr()); }
 function updateAutoTime() { const el = $('autoTime'); if (el) el.value = getCurrentTimeStr(); }
 function startAutoDateTime() {
@@ -1260,7 +1264,7 @@ function startAutoDateTime() {
   _timeUpdater = setInterval(() => { updateAutoDate(); updateAutoTime(); }, TIME_UPDATE_MS);
 }
 
-/* === CSV counter === */
+/* === CSV: счётчик и ресайз textarea === */
 function autoResizeTextarea() {
   const ta = $('csvInput'); if (!ta) return;
   ta.style.height = 'auto';
@@ -1321,8 +1325,6 @@ function setTableQuery(q) {
   if (_tableSearchTimer) clearTimeout(_tableSearchTimer);
   _tableSearchTimer = setTimeout(() => { _tableSearchTimer = null; applyTableFilter(); }, SEARCH_DEBOUNCE_MS);
 }
-
-/* === Проверка проблемности === */
 function isProblemRow(row) {
   if (!row) return false;
   const calc = computeFIFO(row);
@@ -1782,9 +1784,7 @@ function parseCSV(text, referenceDate) {
     if (!vals.some(v => v !== '')) continue;
     let name = safeStr(vals[idxName], MAX_NAME);
     if (!name) continue;
-    // Убираем префикс «Т » (транспортная позиция)
     name = name.replace(/^Т\s+/, '');
-    // Убираем суффиксы «п/ф», «П/Ф», «полуфабрикат»
     name = name.replace(/\s+п\/ф\s*$/i, '').replace(/\s+полуфабрикат\s*$/i, '');
     name = name.trim();
     if (!name) continue;
@@ -2105,24 +2105,9 @@ function setGeminiModel(v) {
   if (!v || typeof v !== 'string') return;
   try { localStorage.setItem(GEMINI_MODEL_KEY, v); } catch (e) {}
 }
-function getGeminiThinking() {
-  try {
-    const v = localStorage.getItem(GEMINI_THINKING_KEY);
-    if (v === 'low' || v === 'medium' || v === 'high') return v;
-  } catch (e) {}
-  return GEMINI_THINKING_DEFAULT;
-}
-function setGeminiThinking(v) {
-  if (v !== 'low' && v !== 'medium' && v !== 'high') return;
-  try { localStorage.setItem(GEMINI_THINKING_KEY, v); } catch (e) {}
-}
-  
   /* ═══════════════════════════════════════════
    GEMINI — динамический список моделей
    ═══════════════════════════════════════════ */
-const GEMINI_MODELS_CACHE_KEY = 'fbAuditModelsCache';
-const GEMINI_MODELS_CACHE_TTL = 24 * 60 * 60 * 1000;
-let _geminiTestImageCache = null;
 function getGeminiTestImage() {
   if (_geminiTestImageCache) return _geminiTestImageCache;
   const canvas = document.createElement('canvas');
@@ -2156,7 +2141,7 @@ function saveModelsCache(models) {
 function clearModelsCache() {
   try { localStorage.removeItem(GEMINI_MODELS_CACHE_KEY); } catch (e) {}
 }
-  function getCachedModelsAge() {
+function getCachedModelsAge() {
   try {
     const raw = localStorage.getItem(GEMINI_MODELS_CACHE_KEY);
     if (!raw) return Infinity;
@@ -2298,14 +2283,12 @@ async function refreshModelSelect(force) {
     setStatus('warn', 'Не удалось обновить список моделей. Использую ' + GEMINI_MODEL_DEFAULT);
   }
 }
-  let _modelsRefreshScheduled = false;
 
 function scheduleModelsRefreshOncePerDay() {
   if (_modelsRefreshScheduled) return;
   _modelsRefreshScheduled = true;
   const age = getCachedModelsAge();
   if (age < GEMINI_MODELS_CACHE_TTL) return;
-
   setTimeout(() => {
     if (document.visibilityState === 'hidden') return;
     _silentRefreshModels();
@@ -2330,7 +2313,7 @@ async function _silentRefreshModels() {
   }
 }
 
-  /* ═══════════════════════════════════════════
+/* ═══════════════════════════════════════════
    ПАКЕТ ПО ДАТАМ
    ═══════════════════════════════════════════ */
 function loadDailyAccum() {
@@ -2339,7 +2322,7 @@ function loadDailyAccum() {
     if (!raw) return [];
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) return [];
-return arr.filter(x => x && typeof x.label === 'string' && typeof x.iso === 'string' && typeof x.csv === 'string');
+    return arr.filter(x => x && typeof x.label === 'string' && typeof x.iso === 'string' && typeof x.csv === 'string');
   } catch (e) { return []; }
 }
 function saveDailyAccum() {
@@ -2424,7 +2407,7 @@ function dailyRender() {
   list.innerHTML = '';
   _dailyAccum.forEach(d => {
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--separator);border-radius:9px;background:var(--bg-input);margin-bottom:6px';
+    row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:10px;border:1px solid var(--separator);border-radius:9px;background:var(--bg-input);margin-bottom:6px';
 
     const info = document.createElement('div');
     info.style.cssText = 'flex:1;min-width:0';
@@ -2433,6 +2416,17 @@ function dailyRender() {
     const warnMark = d.needsCheck ? ' <span style="color:var(--orange);font-size:15px">⚠</span>' : '';
     const warnText = d.needsCheck ? ' · проверьте сверку' : '';
     info.innerHTML = `<div style="font-weight:600;font-size:14px">Получено за ${escapeHtml(d.label)}${warnMark}</div><div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px">${posCount} строк${warnText}</div>`;
+
+    const refresh = document.createElement('button');
+    refresh.className = 'secondary';
+    refresh.textContent = '↻';
+    refresh.title = 'Обновить из таблицы';
+    refresh.style.cssText = 'flex:0 0 auto;min-height:34px;padding:6px 10px;font-size:14px';
+    refresh.onclick = () => {
+      const ok = rebuildDailyCsvFromTable(d.iso);
+      if (ok) { dailyRender(); showToast(`Дата ${d.label} обновлена из таблицы`); }
+      else showToast('Не удалось обновить');
+    };
 
     const del = document.createElement('button');
     del.className = 'secondary';
@@ -2445,6 +2439,7 @@ function dailyRender() {
     };
 
     row.appendChild(info);
+    row.appendChild(refresh);
     row.appendChild(del);
     list.appendChild(row);
   });
@@ -2526,7 +2521,6 @@ async function recognizeDaily() {
 
     if (!csv1 && !csv2) throw new Error(err1 || err2 || 'Оба запроса не удались.');
 
-    // Проверка: совпадают ли два прогона?
     let bothMatch = false;
     if (csv1 && csv2) {
       try {
@@ -2555,24 +2549,22 @@ async function recognizeDaily() {
     const chosen = csv1 || csv2;
     const needsCheck = !!(csv1 && csv2 && !bothMatch);
     const idx = _dailyAccum.findIndex(x => x.iso === parsed.iso);
-    const entry = { iso: parsed.iso, label: parsed.label, csv: chosen, ts: Date.now(), needsCheck: needsCheck };
+    const entry = { iso: parsed.iso, label: parsed.label, csv: chosen, ts: Date.now(), needsCheck: needsCheck, category: _activeCategory };
     if (idx >= 0) _dailyAccum[idx] = entry;
     else _dailyAccum.push(entry);
     saveDailyAccum();
     dailyRender();
 
     if (csv1 && csv2 && bothMatch) {
-      // Оба прогона совпали — всё чисто
       setStatus('ok', `Дата ${parsed.label}: оба прогона совпали. Накоплено. Фото очищены.`);
       try { await clearAllPhotos(); } catch (e) {}
       await renderPhotoQueue();
     } else if (csv1 && csv2) {
-      // Расхождения — сохраняем первый, помечаем, открываем сверку
-      setStatus('warn', `Дата ${parsed.label}: расхождения между прогонами. Сохранён первый, помечен ⚠. Фото не очищены.`);
+      setStatus('warn', `Дата ${parsed.label}: расхождения между прогонами. Разберитесь в сверке — после закрытия данные этой даты перезапишутся из таблицы.`);
       _lastGeminiCsvs = { first: csv1, second: csv2 };
+      _dailyEditing = parsed.iso;
       setTimeout(() => openCompareModal({ first: csv1, second: csv2 }), 400);
     } else {
-      // Один упал
       setStatus('warn', `Дата ${parsed.label} накоплена (только один прогон удался). ${err1 || err2}`);
       try { await clearAllPhotos(); } catch (e) {}
       await renderPhotoQueue();
@@ -2587,28 +2579,69 @@ async function recognizeDaily() {
   }
 }
 
+function rebuildDailyCsvFromTable(iso) {
+  const idx = _dailyAccum.findIndex(x => x.iso === iso);
+  if (idx < 0) return false;
+  const entry = _dailyAccum[idx];
+  const category = entry.category || null;
+  const rows = [];
+
+  for (const row of tableRows) {
+    if (!row) continue;
+    if (category && row.category !== category) continue;
+    const party = (row.incoming || []).find(p => p.date === iso);
+    const qty = party ? (party.qty || 0) : 0;
+    const sales = row.sales || 0;
+    if (qty === 0 && sales === 0) continue;
+    rows.push({ name: row.name, qty, sales, shelfLife: row.shelfLife });
+  }
+
+  if (!rows.length) return false;
+
+  const header = ['Наименование', `Получено за ${entry.label}`, 'Продано сегодня', 'Срок годности'];
+  const lines = [header.join(';')];
+  for (const r of rows) {
+    const name = String(r.name || '');
+    const safeName = (name.includes(';') || name.includes('"') || name.includes('\n'))
+      ? '"' + name.replace(/"/g, '""') + '"'
+      : name;
+    lines.push(`${safeName};${r.qty};${r.sales};${r.shelfLife != null ? r.shelfLife : ''}`);
+  }
+  entry.csv = lines.join('\n');
+  entry.needsCheck = false;
+  entry.ts = Date.now();
+  saveDailyAccum();
+  return true;
+}
+
+function finalizeDailyEditing() {
+  if (!_dailyEditing) return;
+  const iso = _dailyEditing;
+  _dailyEditing = null;
+  const ok = rebuildDailyCsvFromTable(iso);
+  if (ok) {
+    const entry = _dailyAccum.find(x => x.iso === iso);
+    dailyRender();
+    if (entry) showToast(`Дата ${entry.label} обновлена из таблицы`);
+  }
+}
+
 function buildDailyCsv() {
   const statusEl = $('dailyStatus');
   if (!_dailyAccum.length) {
     if (statusEl) { statusEl.className = 'status show err'; statusEl.textContent = 'Накопитель пуст.'; }
     return;
   }
-  // Нормализатор названия: убираем все кавычки, лишние пробелы, суффиксы
   function cleanName(raw) {
     let s = String(raw || '');
-    // Снимаем обрамляющие кавычки, если есть
     s = s.replace(/^["'«»]+|["'«»]+$/g, '');
-    // Убираем все оставшиеся кавычки внутри
     s = s.replace(/["'«»]/g, '');
-    // Убираем префикс "Т " в начале
     s = s.replace(/^Т\s+/, '');
-    // Убираем суффиксы "п/ф" и "полуфабрикат"
     s = s.replace(/\s+п\/ф\s*$/i, '').replace(/\s+полуфабрикат\s*$/i, '');
-    // Сжимаем пробелы
     s = s.replace(/\s+/g, ' ').trim();
     return s;
   }
-  
+
   _dailyAccum.sort((a, b) => a.iso.localeCompare(b.iso));
 
   const allNames = new Set();
@@ -2627,12 +2660,10 @@ function buildDailyCsv() {
     }
     for (const r of parsed.rows) {
       const clean = cleanName(r.name);
-      // Пропускаем мусорные строки (склейки, битые названия)
       if (!clean) continue;
       if (clean.length > 80) continue;
-      if (/;\d/.test(clean)) continue; // если внутри названия есть ;цифра — это склейка
-      if (/^\d+$/.test(clean)) continue; // если название состоит из цифр
-      // Пропускаем служебные строки
+      if (/;\d/.test(clean)) continue;
+      if (/^\d+$/.test(clean)) continue;
       if (/^(итого|всего|без категории|вода)/i.test(clean)) continue;
 
       const name = clean;
@@ -2645,8 +2676,7 @@ function buildDailyCsv() {
   }
 
   const sortedDatesAsc = _dailyAccum.map(d => ({ iso: d.iso, label: d.label })).sort((a, b) => a.iso.localeCompare(b.iso));
-  const lastDate = sortedDatesAsc[sortedDatesAsc.length - 1]; // самая свежая — для продаж
-  // Для вывода колонок — от свежей к старой
+  const lastDate = sortedDatesAsc[sortedDatesAsc.length - 1];
   const sortedDates = [...sortedDatesAsc].reverse();
 
   const header = ['Наименование', ...sortedDates.map(d => `Получено за ${d.label}`), 'Продано сегодня', 'Срок годности'];
@@ -2696,7 +2726,7 @@ function dailyClear() {
   const statusEl = $('dailyStatus');
   if (statusEl) { statusEl.className = 'status'; statusEl.textContent = ''; }
 }
-  
+
 /* ═══════════════════════════════════════════
    XLSX — ленивая загрузка
    ═══════════════════════════════════════════ */
@@ -2719,7 +2749,8 @@ function loadXLSX() {
   });
   return _xlsxPromise;
 }
-  /* ═══════════════════════════════════════════
+
+/* ═══════════════════════════════════════════
    PHOTO DB
    ═══════════════════════════════════════════ */
 function openPhotoDB() {
@@ -2759,7 +2790,6 @@ async function addPhotos(files, type) {
 function naturalCompare(a, b) {
   return String(a || '').localeCompare(String(b || ''), 'ru', { numeric: true, sensitivity: 'base' });
 }
-  
 async function getPhotos() {
   try {
     const db = await openPhotoDB();
@@ -4354,7 +4384,8 @@ function deletePriceEdit() {
   closePriceEdit();
   renderPricesList();
 }
-  /* ═══════════════════════════════════════════
+
+/* ═══════════════════════════════════════════
    APPLY CSV
    ═══════════════════════════════════════════ */
 async function applyCSV() {
@@ -4537,7 +4568,6 @@ function showToast(text) {
 /* ═══════════════════════════════════════════
    PROMPT
    ═══════════════════════════════════════════ */
-/* Стабильные правила — они не меняются от запуска к запуску */
 function buildSystemPrompt() {
   return `Ты — OCR-ассистент для аудита сроков годности в кондитерской French Bakery.
 Читаешь фото накладных (ТОРГ-12, листы заказа) и чеки продаж, выдаёшь CSV.
@@ -4607,7 +4637,6 @@ function buildSystemPrompt() {
 #НЕЧИТАЕМО:`;
 }
 
-/* Динамическая часть — меняется от запуска к запуску */
 function buildPrompt() {
   const checkDate = getTodayStr();
   const checkTime = getCurrentTimeStr();
@@ -4731,7 +4760,6 @@ async function buildGeminiFileParts() {
         if (totalB64 > GEMINI_MAX_B64_BYTES) {
           throw new Error(`Суммарный размер файлов превышает лимит. Уменьшите количество фото.`);
         }
-        // Метка перед изображением — модель видит нумерацию и легче ссылается на конкретное фото
         parts.push({ text: `--- Изображение ${imgIndex} ---` });
         parts.push({ inline_data: { mime_type: mime, data: b64 } });
       }
@@ -4758,8 +4786,7 @@ function extractCsvFromGeminiText(text) {
   if (headerIdx > 0) csv = lines.slice(headerIdx).join('\n');
   return csv.trim();
 }
-
-/* ═══════════════════════════════════════════
+  /* ═══════════════════════════════════════════
    RECOGNIZE — двойной прогон
    ═══════════════════════════════════════════ */
 async function recognizeWithGemini() {
@@ -4790,8 +4817,6 @@ async function recognizeWithGemini() {
 
     const url = `${GEMINI_API}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
-    // Сначала изображения, ПОСЛЕ них — инструкция.
-    // Так модель читает документы, а инструкцию видит прямо перед генерацией.
     const contentsParts = [
       ...fileParts,
       { text: userPrompt }
@@ -4870,22 +4895,11 @@ async function recognizeWithGemini() {
       const lines = primaryCsv.split(/\r?\n/).length;
       setStatus('info', `Получено 2 ответа (${lines} строк). Применяю первый…`);
       showToast('Применяю CSV первого прогона');
-
-      // Даём статусу отрисоваться и снять блокировку кнопки «Применить»
       await new Promise(r => setTimeout(r, 250));
-
-      try {
-        await applyCSV();
-      } catch (e) {
-        console.warn('Auto-apply failed:', e);
-      }
-
-      // applyCSV может показать модалки «Не в справочнике» или «Без категории»
-      // через 300 мс — ждём, потом закрываем их, чтобы не мешали сверке
+      try { await applyCSV(); } catch (e) { console.warn('Auto-apply failed:', e); }
       await new Promise(r => setTimeout(r, 500));
       try { closeUnknownModal(); } catch (e) {}
       try { closeNoCategoryModal(); } catch (e) {}
-
       setStatus('ok', `CSV первого прогона применён (${lines} строк). Открываю сверку…`);
       showToast('Открываю сверку двух CSV');
       setTimeout(() => openCompareModal({ first: csv1, second: csv2 }), 300);
@@ -5196,7 +5210,8 @@ function measureHeader() {
    BIND UI
    ═══════════════════════════════════════════ */
 function bindUI() {
-    const dailyRec = $('dailyRecognizeBtn');
+  /* === Пакет по датам === */
+  const dailyRec = $('dailyRecognizeBtn');
   if (dailyRec) dailyRec.onclick = recognizeDaily;
   const dailyBuild = $('dailyBuildBtn');
   if (dailyBuild) dailyBuild.onclick = buildDailyCsv;
@@ -5210,6 +5225,8 @@ function bindUI() {
       if (cleaned !== dailyDateInput.value) dailyDateInput.value = cleaned;
     });
   }
+
+  /* === Загрузка фото === */
   const invBtn = $('uploadInvoicePhotosBtn'); if (invBtn) invBtn.onclick = () => { const i = $('invoicePhotoInput'); if (i) i.click(); };
   const salBtn = $('uploadSalesPhotosBtn'); if (salBtn) salBtn.onclick = () => { const i = $('salesPhotoInput'); if (i) i.click(); };
   const invInput = $('invoicePhotoInput');
@@ -5217,7 +5234,7 @@ function bindUI() {
   const salInput = $('salesPhotoInput');
   if (salInput) salInput.onchange = async e => { try { if (e.target.files && e.target.files.length) await addPhotos(e.target.files, 'sales'); } finally { e.target.value = ''; } };
 
-  /* Gemini */
+  /* === Gemini === */
   const geminiBtn = $('recognizeGeminiBtn');
   if (geminiBtn) geminiBtn.onclick = recognizeWithGemini;
 
@@ -5244,7 +5261,7 @@ function bindUI() {
     geminiModelSelect.addEventListener('change', () => setGeminiModel(geminiModelSelect.value));
   }
 
-  /* Share fallback */
+  /* === Share fallback === */
   const shareBtn = $('shareToAIBtn'); if (shareBtn) shareBtn.onclick = shareToAI;
 
   const copyPromptBtn = $('copyPromptBtn');
@@ -5948,7 +5965,7 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.7.0 · 2× Gemini · catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.8.0 · 2× Gemini · catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
 }
 
 /* ═══════════════════════════════════════════
@@ -6152,7 +6169,10 @@ function openCompareModal(prefill) {
 
   openModal('compareModal');
 }
-function closeCompareModal() { closeModal('compareModal'); }
+function closeCompareModal() {
+  closeModal('compareModal');
+  finalizeDailyEditing();
+}
 
 function cmpRunCompare() {
   const t1 = $('cmpCsv1') ? $('cmpCsv1').value : '';
@@ -6383,6 +6403,7 @@ function cmpBindUI() {
     const ap = $('cmpApplyBtn'); if (ap) ap.style.display = 'none';
     _cmpData = null;
     _lastGeminiCsvs = { first: '', second: '' };
+    _dailyEditing = null;
   };
   const addNaklBtn = $('cmpAddNaklBtn');
   if (addNaklBtn) addNaklBtn.onclick = () => {
