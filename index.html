@@ -541,6 +541,32 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
+    <!-- ═══════════════ Пакет по датам ═══════════════ -->
+  <div class="section" id="dailySection">
+    <div class="section-header">
+      <h2>Пакет по датам</h2>
+      <p class="desc">Обработайте накладные по одной дате. Затем соберите итоговый CSV.</p>
+    </div>
+    <div class="section-body">
+      <div class="row">
+        <div>
+          <label>Дата накладной</label>
+          <input id="dailyDate" type="text" placeholder="23.09" maxlength="10" autocomplete="off">
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="dailyRecognizeBtn" class="primary block">Распознать день</button>
+        </div>
+      </div>
+      <div id="dailyStatus" class="status" style="margin-top:10px"></div>
+      <div id="dailyList" style="margin-top:12px"></div>
+      <div id="dailyActions" style="margin-top:12px;display:none">
+        <button id="dailyBuildBtn" class="success block">Сформировать итоговый CSV</button>
+        <button id="dailyClearBtn" class="secondary block" style="margin-top:8px">Очистить весь пакет</button>
+      </div>
+    </div>
+  </div>
+  
   <!-- ═══════════════ Импорт данных ═══════════════ -->
   <div class="section">
     <div class="section-header">
@@ -1097,6 +1123,9 @@ let _lastGeminiCsvs = { first: '', second: '' };
 let _cmpData = null;
 let _cmpNakls = [];
 let _xlsxPromise = null;
+  /* Пакет по датам */
+const DAILY_KEY = 'fbAuditDailyAccumulator';
+let _dailyAccum = [];
 
 /* ═══════════════════════════════════════════
    БАЗОВЫЕ УТИЛИТЫ
@@ -2302,6 +2331,310 @@ async function _silentRefreshModels() {
   }
 }
 
+  /* ═══════════════════════════════════════════
+   ПАКЕТ ПО ДАТАМ
+   ═══════════════════════════════════════════ */
+function loadDailyAccum() {
+  try {
+    const raw = localStorage.getItem(DAILY_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(x => x && typeof x.date === 'string' && typeof x.iso === 'string' && typeof x.csv === 'string');
+  } catch (e) { return []; }
+}
+function saveDailyAccum() {
+  try { localStorage.setItem(DAILY_KEY, JSON.stringify(_dailyAccum)); } catch (e) {}
+}
+
+function dailyParseDateInput(str) {
+  const s = String(str || '').trim();
+  if (!s) return null;
+  let m = s.match(/^(\d{1,2})[.\-\/](\d{1,2})(?:[.\-\/](\d{2,4}))?$/);
+  if (!m) return null;
+  const day = parseInt(m[1], 10);
+  const month = parseInt(m[2], 10);
+  if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+  let year = m[3] ? parseInt(m[3], 10) : new Date().getFullYear();
+  if (year < 100) year += 2000;
+  const d = new Date(year, month - 1, day);
+  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null;
+  const iso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const label = `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}`;
+  return { iso, label };
+}
+
+function buildDailyPrompt(dateLabel) {
+  const catProducts = getCategoryProducts(_activeCategory);
+  const catLabel = _activeCategory ? CATEGORY_LABELS[_activeCategory] : '—';
+  let searchBlock, catalogList;
+  if (catProducts.length) {
+    catalogList = catProducts.map(p => `- ${p.name}: ${p.shelfLife}`).join('\n');
+    searchBlock = `🎯 ТОЛЬКО ЭТИ ПОЗИЦИИ (категория «${catLabel}»):\n${catProducts.map(p => `- ${p.name}`).join('\n')}`;
+  } else {
+    catalogList = PRODUCTS.map(p => `- ${p.name}: ${p.shelfLife}`).join('\n');
+    searchBlock = '⚠️ Категория не выбрана — обработай все позиции справочника.';
+  }
+  return `ЗАДАЧА: прочитать ОДНУ накладную за ${dateLabel} и ОДИН чек продаж (если загружен).
+
+Все приложенные фото относятся к ОДНОЙ дате — ${dateLabel}.
+Не путай с другими датами.
+
+${searchBlock}
+
+═══════════════════════════════════════════
+ФОРМАТ CSV
+═══════════════════════════════════════════
+РОВНО ЧЕТЫРЕ КОЛОНКИ:
+Наименование;Получено за ${dateLabel};Продано сегодня;Срок годности
+
+Кавычки: " → "", всё название в кавычках.
+Числа целые. Нет значения — ставь 0.
+
+═══════════════════════════════════════════
+КРИТИЧЕСКИЕ ПРАВИЛА
+═══════════════════════════════════════════
+🔴 Количество — ТОЛЬКО колонка 8 в накладной, колонка 5 в листе заказа.
+🔴 Для каждой строки ряда похожих названий: проверь К-во × Цена = Сумма.
+🔴 НЕ выдумывай. Нечитаемое → #НЕЧИТАЕМО.
+🔴 ТОЛЬКО колонка «Получено за ${dateLabel}» — не добавляй другие даты.
+🔴 В CSV — только позиции, физически присутствующие в документе.
+🔴 Убирай суффиксы «п/ф», префикс «Т » в названиях.
+
+═══════════════════════════════════════════
+СПРАВОЧНИК
+═══════════════════════════════════════════
+${catalogList}
+
+Выдай CSV.`;
+}
+
+function dailyRender() {
+  const list = $('dailyList');
+  const status = $('dailyStatus');
+  const actions = $('dailyActions');
+  if (!list) return;
+
+  if (!_dailyAccum.length) {
+    list.innerHTML = '<div class="hint">Пока ничего не накоплено.</div>';
+    if (actions) actions.style.display = 'none';
+    return;
+  }
+
+  _dailyAccum.sort((a, b) => a.iso.localeCompare(b.iso));
+  list.innerHTML = '';
+  _dailyAccum.forEach(d => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--separator);border-radius:9px;background:var(--bg-input);margin-bottom:6px';
+
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    let posCount = 0;
+    try { posCount = (d.csv.split(/\r?\n/).filter(l => l.trim()).length - 1); } catch (e) {}
+    info.innerHTML = `<div style="font-weight:600;font-size:14px">Получено за ${escapeHtml(d.label)}</div><div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px">${posCount} строк</div>`;
+
+    const del = document.createElement('button');
+    del.className = 'secondary';
+    del.textContent = 'Удалить';
+    del.style.cssText = 'flex:0 0 auto;min-height:34px;padding:6px 12px;font-size:12.5px';
+    del.onclick = () => {
+      _dailyAccum = _dailyAccum.filter(x => x.iso !== d.iso);
+      saveDailyAccum();
+      dailyRender();
+    };
+
+    row.appendChild(info);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+  if (actions) actions.style.display = 'block';
+  if (status) {
+    status.className = 'status show info';
+    status.textContent = `В пакете дат: ${_dailyAccum.length}. Даты: ${_dailyAccum.map(d => d.label).join(', ')}.`;
+  }
+}
+
+async function recognizeDaily() {
+  if (shareBusy) return;
+  const dateInput = $('dailyDate');
+  const statusEl = $('dailyStatus');
+  const setStatus = (cls, text) => { if (statusEl) { statusEl.className = 'status show ' + cls; statusEl.textContent = text; } };
+
+  const parsed = dailyParseDateInput(dateInput ? dateInput.value : '');
+  if (!parsed) { setStatus('err', 'Введите дату в формате ДД.ММ.'); return; }
+  if (!isValidCategory(_activeCategory)) { setStatus('err', 'Сначала выберите категорию.'); return; }
+  const apiKey = getGeminiKey();
+  if (!apiKey) { setStatus('err', 'Введите API-ключ в настройках.'); return; }
+
+  const items = await getPhotos();
+  if (!items.length) { setStatus('info', 'Сначала загрузите фото накладной и чека за эту дату.'); return; }
+
+  shareBusy = true;
+  const btn = $('dailyRecognizeBtn');
+  if (btn) btn.classList.add('busy');
+  try {
+    setStatus('info', 'Подготовка файлов…');
+    const fileParts = await buildGeminiFileParts();
+    if (!fileParts.length) throw new Error('Не удалось подготовить файлы.');
+
+    const systemPrompt = buildSystemPrompt();
+    const userPrompt = buildDailyPrompt(parsed.label);
+    const model = getGeminiModel();
+    const maxOutputTokens = 8192;
+    const url = `${GEMINI_API}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+    const body = {
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ parts: [...fileParts, { text: userPrompt }] }],
+      generationConfig: { temperature: 0.1, maxOutputTokens: maxOutputTokens }
+    };
+
+    setStatus('info', 'Отправка 2 запросов…');
+
+    const sendOne = async (label) => {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const errJson = await res.json();
+          if (errJson && errJson.error && errJson.error.message) msg = errJson.error.message;
+        } catch (e) {}
+        if (res.status === 429) msg = 'Превышен лимит запросов.';
+        if (res.status === 503 || /high demand|overload/i.test(msg)) msg = 'Сервер перегружен.';
+        throw new Error(label + ': ' + msg);
+      }
+      const data = await res.json();
+      const cand = data && data.candidates && data.candidates[0];
+      if (!cand) throw new Error(label + ': нет кандидатов.');
+      const parts = (cand.content && cand.content.parts) || [];
+      const text = parts.map(p => p.text || '').join('');
+      const csv = extractCsvFromGeminiText(text);
+      if (!csv || !/;/.test(csv)) throw new Error(label + ': ответ не похож на CSV.');
+      return csv;
+    };
+
+    const results = await Promise.allSettled([sendOne('Прогон 1'), sendOne('Прогон 2')]);
+    const csv1 = results[0].status === 'fulfilled' ? results[0].value : null;
+    const csv2 = results[1].status === 'fulfilled' ? results[1].value : null;
+    const err1 = results[0].status === 'rejected' ? results[0].reason.message : '';
+    const err2 = results[1].status === 'rejected' ? results[1].reason.message : '';
+
+    if (!csv1 && !csv2) throw new Error(err1 || err2 || 'Оба запроса не удались.');
+
+    const chosen = csv1 || csv2;
+    const idx = _dailyAccum.findIndex(x => x.iso === parsed.iso);
+    const entry = { iso: parsed.iso, label: parsed.label, csv: chosen, ts: Date.now() };
+    if (idx >= 0) _dailyAccum[idx] = entry;
+    else _dailyAccum.push(entry);
+    saveDailyAccum();
+    dailyRender();
+
+    if (csv1 && csv2) {
+      setStatus('ok', `Дата ${parsed.label} накоплена. Фото очищены.`);
+    } else {
+      setStatus('warn', `Дата ${parsed.label} накоплена (только один прогон удался). ${err1 || err2}`);
+    }
+
+    try { await clearAllPhotos(); } catch (e) {}
+    await renderPhotoQueue();
+    if (dateInput) dateInput.value = '';
+  } catch (e) {
+    setStatus('err', 'Ошибка: ' + (e.message || e));
+  } finally {
+    shareBusy = false;
+    if (btn) btn.classList.remove('busy');
+  }
+}
+
+function buildDailyCsv() {
+  const statusEl = $('dailyStatus');
+  if (!_dailyAccum.length) {
+    if (statusEl) { statusEl.className = 'status show err'; statusEl.textContent = 'Накопитель пуст.'; }
+    return;
+  }
+
+  _dailyAccum.sort((a, b) => a.iso.localeCompare(b.iso));
+
+  const allNames = new Set();
+  const byDate = {};
+  const salesByDate = {};
+  const shelfByName = {};
+
+  for (const d of _dailyAccum) {
+    byDate[d.iso] = {};
+    salesByDate[d.iso] = {};
+    let parsed;
+    try {
+      parsed = parseCSV(d.csv, new Date());
+    } catch (e) {
+      if (statusEl) { statusEl.className = 'status show err'; statusEl.textContent = `Ошибка разбора CSV для ${d.label}: ${e.message}`; }
+      return;
+    }
+    for (const r of parsed.rows) {
+      const name = r.name;
+      allNames.add(name);
+      if (!shelfByName[name] && r.shelfLife != null) shelfByName[name] = r.shelfLife;
+      const qty = r.incoming && r.incoming.length ? (r.incoming[0].qty || 0) : 0;
+      byDate[d.iso][name] = (byDate[d.iso][name] || 0) + qty;
+      salesByDate[d.iso][name] = r.sales || 0;
+    }
+  }
+
+  const sortedDates = _dailyAccum.map(d => ({ iso: d.iso, label: d.label }));
+  const lastDate = sortedDates[sortedDates.length - 1];
+
+  const header = ['Наименование', ...sortedDates.map(d => `Получено за ${d.label}`), 'Продано сегодня', 'Срок годности'];
+  const namesSorted = [...allNames].sort((a, b) => String(a).localeCompare(String(b), 'ru'));
+
+  const rows = [header];
+  for (const name of namesSorted) {
+    const cols = [name];
+    for (const d of sortedDates) {
+      cols.push(byDate[d.iso][name] || 0);
+    }
+    cols.push(salesByDate[lastDate.iso][name] || 0);
+    cols.push(shelfByName[name] != null ? shelfByName[name] : '');
+    rows.push(cols);
+  }
+
+  const csvLines = rows.map(r => r.map(v => {
+    const s = String(v);
+    if (s.includes(';') || s.includes('"') || s.includes('\n')) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }).join(';'));
+
+  const finalCsv = csvLines.join('\n');
+  const csvField = $('csvInput');
+  if (csvField) {
+    csvField.value = finalCsv;
+    autoResizeTextarea();
+    updateCsvCounter();
+    scheduleSessionSave();
+    csvField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  if (statusEl) {
+    statusEl.className = 'status show ok';
+    statusEl.textContent = `Итоговый CSV собран: ${namesSorted.length} позиций. Нажмите «Применить» в разделе «Импорт данных».`;
+  }
+  showToast('Итоговый CSV готов');
+}
+
+function dailyClear() {
+  if (!_dailyAccum.length) return;
+  if (!confirm(`Очистить пакет из ${_dailyAccum.length} дат?`)) return;
+  _dailyAccum = [];
+  saveDailyAccum();
+  dailyRender();
+  const statusEl = $('dailyStatus');
+  if (statusEl) { statusEl.className = 'status'; statusEl.textContent = ''; }
+}
+  
 /* ═══════════════════════════════════════════
    XLSX — ленивая загрузка
    ═══════════════════════════════════════════ */
@@ -4801,6 +5134,20 @@ function measureHeader() {
    BIND UI
    ═══════════════════════════════════════════ */
 function bindUI() {
+    const dailyRec = $('dailyRecognizeBtn');
+  if (dailyRec) dailyRec.onclick = recognizeDaily;
+  const dailyBuild = $('dailyBuildBtn');
+  if (dailyBuild) dailyBuild.onclick = buildDailyCsv;
+  const dailyClearBtn = $('dailyClearBtn');
+  if (dailyClearBtn) dailyClearBtn.onclick = dailyClear;
+  const dailyDateInput = $('dailyDate');
+  if (dailyDateInput) {
+    dailyDateInput.addEventListener('focus', () => scrollFieldIntoView(dailyDateInput));
+    dailyDateInput.addEventListener('input', () => {
+      const cleaned = dailyDateInput.value.replace(/[^\d.]/g, '').slice(0, 10);
+      if (cleaned !== dailyDateInput.value) dailyDateInput.value = cleaned;
+    });
+  }
   const invBtn = $('uploadInvoicePhotosBtn'); if (invBtn) invBtn.onclick = () => { const i = $('invoicePhotoInput'); if (i) i.click(); };
   const salBtn = $('uploadSalesPhotosBtn'); if (salBtn) salBtn.onclick = () => { const i = $('salesPhotoInput'); if (i) i.click(); };
   const invInput = $('invoicePhotoInput');
@@ -5513,6 +5860,8 @@ function init() {
   updateSegmentedCounters();
   setProblemFilter(false);
   renderPhotoQueue();
+  _dailyAccum = loadDailyAccum();
+  dailyRender();
   cmpBindUI();
   cmpRenderNakls();
   updateIgnoredCount();
