@@ -2130,6 +2130,15 @@ function saveModelsCache(models) {
 function clearModelsCache() {
   try { localStorage.removeItem(GEMINI_MODELS_CACHE_KEY); } catch (e) {}
 }
+  function getCachedModelsAge() {
+  try {
+    const raw = localStorage.getItem(GEMINI_MODELS_CACHE_KEY);
+    if (!raw) return Infinity;
+    const d = JSON.parse(raw);
+    if (!d || !d.ts) return Infinity;
+    return Date.now() - d.ts;
+  } catch (e) { return Infinity; }
+}
 
 function prettyModelName(id) {
   const hasPro = /pro/.test(id);
@@ -2203,8 +2212,8 @@ async function discoverGeminiModels(apiKey, onProgress) {
   ['flashLite', 'flash', 'pro'].forEach(k => {
     const stable = groups[k].filter(m => !/preview/.test(m.id));
     const preview = groups[k].filter(m => /preview/.test(m.id));
-    toTest.push(...stable.slice(0, 1));
-    toTest.push(...preview.slice(0, 1));
+    if (stable.length) toTest.push(stable[0]);
+    else if (preview.length) toTest.push(preview[0]);
   });
 
   const working = [];
@@ -2261,6 +2270,37 @@ async function refreshModelSelect(force) {
   } catch (e) {
     fillModelSelect([{ id: GEMINI_MODEL_DEFAULT, displayName: '' }]);
     setStatus('warn', 'Не удалось обновить список моделей. Использую ' + GEMINI_MODEL_DEFAULT);
+  }
+}
+  let _modelsRefreshScheduled = false;
+
+function scheduleModelsRefreshOncePerDay() {
+  if (_modelsRefreshScheduled) return;
+  _modelsRefreshScheduled = true;
+  const age = getCachedModelsAge();
+  if (age < GEMINI_MODELS_CACHE_TTL) return;
+
+  setTimeout(() => {
+    if (document.visibilityState === 'hidden') return;
+    _silentRefreshModels();
+  }, 60 * 1000);
+}
+
+async function _silentRefreshModels() {
+  const apiKey = getGeminiKey();
+  if (!apiKey) return;
+  try {
+    const working = await discoverGeminiModels(apiKey, null);
+    saveModelsCache(working);
+    const sel = $('geminiModelSelect');
+    const current = (sel && sel.value) || getGeminiModel();
+    fillModelSelect(working);
+    if (sel && working.some(m => m.id === current)) {
+      sel.value = current;
+      setGeminiModel(current);
+    }
+  } catch (e) {
+    console.warn('Silent model refresh failed:', e && e.message);
   }
 }
 
@@ -5428,7 +5468,15 @@ function init() {
 
   const geminiKeyInput = $('geminiKeyInput');
   if (geminiKeyInput && !geminiKeyInput.value) geminiKeyInput.value = getGeminiKey();
-  refreshModelSelect(false);
+
+  const _cachedModels = loadModelsCache();
+  if (_cachedModels && _cachedModels.length) {
+    fillModelSelect(_cachedModels);
+  } else {
+    fillModelSelect([{ id: GEMINI_MODEL_DEFAULT, displayName: '' }]);
+  }
+  scheduleModelsRefreshOncePerDay();
+
   const geminiThinkingSelect = $('geminiThinkingSelect');
   if (geminiThinkingSelect) geminiThinkingSelect.value = getGeminiThinking();
 
