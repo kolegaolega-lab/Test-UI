@@ -2431,7 +2431,9 @@ function dailyRender() {
     info.style.cssText = 'flex:1;min-width:0';
     let posCount = 0;
     try { posCount = (d.csv.split(/\r?\n/).filter(l => l.trim()).length - 1); } catch (e) {}
-    info.innerHTML = `<div style="font-weight:600;font-size:14px">Получено за ${escapeHtml(d.label)}</div><div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px">${posCount} строк</div>`;
+    const warnMark = d.needsCheck ? ' <span style="color:var(--orange);font-size:15px">⚠</span>' : '';
+    const warnText = d.needsCheck ? ' · проверьте сверку' : '';
+    info.innerHTML = `<div style="font-weight:600;font-size:14px">Получено за ${escapeHtml(d.label)}${warnMark}</div><div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px">${posCount} строк${warnText}</div>`;
 
     const del = document.createElement('button');
     del.className = 'secondary';
@@ -2525,22 +2527,58 @@ async function recognizeDaily() {
 
     if (!csv1 && !csv2) throw new Error(err1 || err2 || 'Оба запроса не удались.');
 
+    // Проверка: совпадают ли два прогона?
+    let bothMatch = false;
+    if (csv1 && csv2) {
+      try {
+        const d1 = cmpParseCSV(csv1);
+        const d2 = cmpParseCSV(csv2);
+        if (d1 && d2) {
+          const keys1 = Object.keys(d1.rows);
+          const keys2 = Object.keys(d2.rows);
+          if (keys1.length === keys2.length && keys1.length > 0) {
+            bothMatch = keys1.every(k => {
+              const a = d1.rows[k];
+              const b = d2.rows[k];
+              if (!b) return false;
+              if ((a.sales || 0) !== (b.sales || 0)) return false;
+              const aKeys = Object.keys(a.incoming);
+              const bKeys = Object.keys(b.incoming);
+              const aVal = aKeys.length ? (a.incoming[aKeys[0]] || 0) : 0;
+              const bVal = bKeys.length ? (b.incoming[bKeys[0]] || 0) : 0;
+              return aVal === bVal;
+            });
+          }
+        }
+      } catch (e) { bothMatch = false; }
+    }
+
     const chosen = csv1 || csv2;
+    const needsCheck = !!(csv1 && csv2 && !bothMatch);
     const idx = _dailyAccum.findIndex(x => x.iso === parsed.iso);
-    const entry = { iso: parsed.iso, label: parsed.label, csv: chosen, ts: Date.now() };
+    const entry = { iso: parsed.iso, label: parsed.label, csv: chosen, ts: Date.now(), needsCheck: needsCheck };
     if (idx >= 0) _dailyAccum[idx] = entry;
     else _dailyAccum.push(entry);
     saveDailyAccum();
     dailyRender();
 
-    if (csv1 && csv2) {
-      setStatus('ok', `Дата ${parsed.label} накоплена. Фото очищены.`);
+    if (csv1 && csv2 && bothMatch) {
+      // Оба прогона совпали — всё чисто
+      setStatus('ok', `Дата ${parsed.label}: оба прогона совпали. Накоплено. Фото очищены.`);
+      try { await clearAllPhotos(); } catch (e) {}
+      await renderPhotoQueue();
+    } else if (csv1 && csv2) {
+      // Расхождения — сохраняем первый, помечаем, открываем сверку
+      setStatus('warn', `Дата ${parsed.label}: расхождения между прогонами. Сохранён первый, помечен ⚠. Фото не очищены.`);
+      _lastGeminiCsvs = { first: csv1, second: csv2 };
+      setTimeout(() => openCompareModal({ first: csv1, second: csv2 }), 400);
     } else {
+      // Один упал
       setStatus('warn', `Дата ${parsed.label} накоплена (только один прогон удался). ${err1 || err2}`);
+      try { await clearAllPhotos(); } catch (e) {}
+      await renderPhotoQueue();
     }
 
-    try { await clearAllPhotos(); } catch (e) {}
-    await renderPhotoQueue();
     if (dateInput) dateInput.value = '';
   } catch (e) {
     setStatus('err', 'Ошибка: ' + (e.message || e));
