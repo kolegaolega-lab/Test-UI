@@ -2355,6 +2355,10 @@ async function addPhotos(files, type) {
     await renderPhotoQueue();
   } catch (e) { console.warn('addPhotos:', e); }
 }
+function naturalCompare(a, b) {
+  return String(a || '').localeCompare(String(b || ''), 'ru', { numeric: true, sensitivity: 'base' });
+}
+  
 async function getPhotos() {
   try {
     const db = await openPhotoDB();
@@ -2398,7 +2402,10 @@ async function renderPhotoQueue() {
   count.className = 'hint';
   count.innerHTML = `Загружено: <b>${items.length}</b> ${items.length === 1 ? 'файл' : 'файлов'}`;
   box.appendChild(count);
-  items.sort((a, b) => a.id - b.id).forEach(item => {
+  items.sort((a, b) => {
+    const cmp = naturalCompare(a.name, b.name);
+    return cmp !== 0 ? cmp : a.id - b.id;
+  }).forEach((item, idx, arr) => {
     const row = document.createElement('div');
     row.className = 'photo-item';
     const img = document.createElement('img');
@@ -2412,7 +2419,7 @@ async function renderPhotoQueue() {
     const meta = document.createElement('div');
     meta.className = 'photo-meta';
     const isPdf = item.kind === 'application/pdf';
-    meta.innerHTML = `<div class="photo-name">${escapeHtml(item.name)}</div><div class="photo-type">${item.type === 'invoice' ? 'Накладная' : 'Чек продаж'} · ${isPdf ? 'PDF' : 'Фото'} · ${Math.round(item.size / 1024)} КБ</div>`;
+    meta.innerHTML = `<div class="photo-name">${idx + 1}. ${escapeHtml(item.name)}</div><div class="photo-type">${item.type === 'invoice' ? 'Накладная' : 'Чек продаж'} · ${isPdf ? 'PDF' : 'Фото'} · ${Math.round(item.size / 1024)} КБ</div>`;
     const acts = document.createElement('div');
     acts.className = 'photo-actions';
     const del = document.createElement('button');
@@ -4300,7 +4307,10 @@ async function compressImageForGemini(blob, maxSide, quality) {
   }
 }
 async function buildGeminiFileParts() {
-  const items = (await getPhotos()).sort((a, b) => a.id - b.id);
+  const items = (await getPhotos()).sort((a, b) => {
+    const cmp = naturalCompare(a.name, b.name);
+    return cmp !== 0 ? cmp : a.id - b.id;
+  });
   const parts = [];
   let totalB64 = 0;
   let imgIndex = 0;
