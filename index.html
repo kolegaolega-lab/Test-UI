@@ -535,8 +535,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     <p class="hint" style="margin:0">Ключ хранится только в вашем браузере.
       Получить: <b>aistudio.google.com</b> → Get API key.</p>
   </div>
-
-      </details>
+  </details>
       <div id="shareStatus" class="status"></div>
     </div>
   </div>
@@ -2340,7 +2339,7 @@ function loadDailyAccum() {
     if (!raw) return [];
     const arr = JSON.parse(raw);
     if (!Array.isArray(arr)) return [];
-    return arr.filter(x => x && typeof x.date === 'string' && typeof x.iso === 'string' && typeof x.csv === 'string');
+return arr.filter(x => x && typeof x.label === 'string' && typeof x.iso === 'string' && typeof x.csv === 'string');
   } catch (e) { return []; }
 }
 function saveDailyAccum() {
@@ -5902,9 +5901,6 @@ function init() {
     fillModelSelect([{ id: GEMINI_MODEL_DEFAULT, displayName: '' }]);
   }
   scheduleModelsRefreshOncePerDay();
-
-  const geminiThinkingSelect = $('geminiThinkingSelect');
-  if (geminiThinkingSelect) geminiThinkingSelect.value = getGeminiThinking();
 
   const pt = $('point');
   if (pt) pt.addEventListener('input', () => { scheduleSessionSave(); updateResultMeta(); });
