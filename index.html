@@ -2556,14 +2556,28 @@ function buildDailyCsv() {
     if (statusEl) { statusEl.className = 'status show err'; statusEl.textContent = 'Накопитель пуст.'; }
     return;
   }
-
+  // Нормализатор названия: убираем все кавычки, лишние пробелы, суффиксы
+  function cleanName(raw) {
+    let s = String(raw || '');
+    // Снимаем обрамляющие кавычки, если есть
+    s = s.replace(/^["'«»]+|["'«»]+$/g, '');
+    // Убираем все оставшиеся кавычки внутри
+    s = s.replace(/["'«»]/g, '');
+    // Убираем префикс "Т " в начале
+    s = s.replace(/^Т\s+/, '');
+    // Убираем суффиксы "п/ф" и "полуфабрикат"
+    s = s.replace(/\s+п\/ф\s*$/i, '').replace(/\s+полуфабрикат\s*$/i, '');
+    // Сжимаем пробелы
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
+  }
+  
   _dailyAccum.sort((a, b) => a.iso.localeCompare(b.iso));
 
   const allNames = new Set();
   const byDate = {};
   const salesByDate = {};
   const shelfByName = {};
-
   for (const d of _dailyAccum) {
     byDate[d.iso] = {};
     salesByDate[d.iso] = {};
@@ -2575,12 +2589,21 @@ function buildDailyCsv() {
       return;
     }
     for (const r of parsed.rows) {
-      const name = r.name;
+      const clean = cleanName(r.name);
+      // Пропускаем мусорные строки (склейки, битые названия)
+      if (!clean) continue;
+      if (clean.length > 80) continue;
+      if (/;\d/.test(clean)) continue; // если внутри названия есть ;цифра — это склейка
+      if (/^\d+$/.test(clean)) continue; // если название состоит из цифр
+      // Пропускаем служебные строки
+      if (/^(итого|всего|без категории|вода)/i.test(clean)) continue;
+
+      const name = clean;
       allNames.add(name);
       if (!shelfByName[name] && r.shelfLife != null) shelfByName[name] = r.shelfLife;
       const qty = r.incoming && r.incoming.length ? (r.incoming[0].qty || 0) : 0;
       byDate[d.iso][name] = (byDate[d.iso][name] || 0) + qty;
-      salesByDate[d.iso][name] = r.sales || 0;
+      salesByDate[d.iso][name] = (salesByDate[d.iso][name] || 0) + (r.sales || 0);
     }
   }
 
