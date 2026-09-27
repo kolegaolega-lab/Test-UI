@@ -1792,7 +1792,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.14.0';
+const APP_VERSION = 'v9.14.1';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -9264,6 +9264,96 @@ function bindUI() {
 
   /* === v9.13.0: строки вкладки «Ещё» === */
   bindMoreRows();
+
+  /* === v9.14.1: свайп-закрытие bottom-sheet === */
+  bindSheetSwipe();
+}
+
+/* ═══════════════════════════════════════════
+   v9.14.1 — Свайп-закрытие bottom-sheet модалок
+   ═══════════════════════════════════════════ */
+function bindSheetSwipe() {
+  ['dayModal', 'checkDetailsModal'].forEach(id => {
+    const modal = $(id);
+    if (!modal) return;
+    const content = modal.querySelector('.modal-content');
+    const scroller = modal.querySelector('.sheet-scroll');
+    if (!content) return;
+
+    let startY = 0;
+    let currentY = 0;
+    let dragging = false;
+    let startTime = 0;
+    let initialScrollTop = 0;
+
+    const onTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      startY = touch.clientY;
+      currentY = startY;
+      startTime = Date.now();
+      initialScrollTop = scroller ? scroller.scrollTop : 0;
+      dragging = false;
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const deltaY = touch.clientY - startY;
+      currentY = touch.clientY;
+
+      // Начинаем драг только на движении вниз
+      if (deltaY <= 0) {
+        if (dragging) {
+          dragging = false;
+          content.style.transition = '';
+          content.style.transform = '';
+        }
+        return;
+      }
+
+      if (!dragging) {
+        // Свайп работает только когда контент уже на самом верху
+        const atTop = !scroller || (scroller.scrollTop === 0 && initialScrollTop === 0);
+        if (!atTop) return;
+        dragging = true;
+        content.style.transition = 'none';
+      }
+
+      content.style.transform = 'translateY(' + deltaY + 'px)';
+      if (e.cancelable) e.preventDefault();
+    };
+
+    const onTouchEnd = () => {
+      if (!dragging) return;
+      const totalDelta = currentY - startY;
+      const elapsed = Date.now() - startTime;
+      const velocity = elapsed > 0 ? totalDelta / elapsed : 0;
+      const threshold = Math.max(80, content.offsetHeight * 0.2);
+      const shouldClose = totalDelta > threshold || (velocity > 0.5 && totalDelta > 30);
+
+      dragging = false;
+
+      if (shouldClose) {
+        content.style.transition = 'transform .25s cubic-bezier(.32,.72,0,1)';
+        content.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+          closeModal(id);
+          content.style.transition = '';
+          content.style.transform = '';
+        }, 250);
+      } else {
+        content.style.transition = 'transform .28s cubic-bezier(.32,.72,0,1)';
+        content.style.transform = '';
+        setTimeout(() => { content.style.transition = ''; }, 280);
+      }
+    };
+
+    content.addEventListener('touchstart', onTouchStart, { passive: true });
+    content.addEventListener('touchmove', onTouchMove, { passive: false });
+    content.addEventListener('touchend', onTouchEnd);
+    content.addEventListener('touchcancel', onTouchEnd);
+  });
 }
 
 /* ═══════════════════════════════════════════
