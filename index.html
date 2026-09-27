@@ -4380,10 +4380,8 @@ async function submitFirstRun() {
   hideFirstRunModal();
   updateHeaderProfile();
   updateProfileInfoBlock();
+  renderMoreCounts();
   showToast('Профиль сохранён: ' + name);
-  if (!_points.length) {
-    setTimeout(() => { openPointsManager(); }, 400);
-  }
 }
 
 /* ═══════════════════════════════════════════
