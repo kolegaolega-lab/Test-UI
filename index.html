@@ -1553,8 +1553,7 @@ body[data-active-tab="check"] .check-steps{display:block}
   </div>
 </div>
 
-<!-- ═══════════════ Тост обновления PWA ═══════════════ -->
-<div id="updateBanner" class="toast">Доступно обновление · нажмите, чтобы перезагрузить</div>
+<!-- v9.11.1: баннер обновления PWA убран — обновление тихое -->
 
 <script>
       'use strict';
@@ -5853,21 +5852,8 @@ async function exportExcel() {
 /* ═══════════════════════════════════════════
    TOAST
    ═══════════════════════════════════════════ */
-function repositionToast() {
-  /* v9.11.1: тост теперь сверху, при клавиатуре ничего не надо пересчитывать */
-}
-function showToast(text) {
-  if (_currentToast) { _currentToast.remove(); _currentToast = null; }
-  const el = document.createElement('div');
-  el.className = 'toast show';
-  el.textContent = text;
-  document.body.appendChild(el);
-  _currentToast = el;
-  setTimeout(() => {
-    el.classList.remove('show');
-    setTimeout(() => { el.remove(); if (_currentToast === el) _currentToast = null; }, 300);
-  }, 3000);
-}
+function repositionToast() { /* тосты отключены в v9.11.1 */ }
+function showToast(text) { /* v9.11.1: тосты отключены — вся обратная связь идёт через плашки статуса */ }
     /* ═══════════════════════════════════════════
    ПРОМПТЫ
    ═══════════════════════════════════════════ */
@@ -8944,22 +8930,7 @@ function initLogoFallback() {
 function initSW() {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-      reg.addEventListener('updatefound', () => {
-        const nw = reg.installing; if (!nw) return;
-        nw.addEventListener('statechange', () => {
-          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            const b = $('updateBanner');
-            if (b) {
-              b.classList.add('show');
-              b.onclick = () => {
-                if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
-              };
-            }
-          }
-        });
-      });
-    }).catch(err => console.warn('SW registration failed:', err));
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed:', err));
 
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
