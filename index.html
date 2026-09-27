@@ -53,10 +53,6 @@ body{
   letter-spacing:-.005em;
 }
 body.modal-open{overflow:hidden}
-html.modal-open,html.modal-open body{overflow:hidden;height:100%}
-.modal{touch-action:none}
-.modal .modal-body{touch-action:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-.modal .day-list{touch-action:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .app-header{
   position:sticky;top:0;z-index:100;
   padding:11px var(--page-pad);
@@ -145,7 +141,7 @@ details.settings .content{margin-top:12px;display:flex;flex-direction:column;gap
 .banner.hidden{display:none}
 .hint{font-size:12px;color:var(--text-secondary);margin:10px 0 0;line-height:1.5}
 .hint b{color:var(--text);font-weight:600}
-.hint.version{text-align:center;color:var(--text-tertiary);margin:8px 0 0;font-size:11px;letter-spacing:.02em}
+.hint.version{text-align:center;color:var(--text-tertiary);margin:8px 0 0;font-size:11px;letter-spacing:.02em;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .legend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px;background:var(--bg-input);border-radius:var(--r-sm);font-size:12px;color:var(--text-secondary);margin:0 12px 12px}
 .legend-item{display:inline-flex;align-items:center;gap:5px}
 .legend-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
@@ -759,7 +755,7 @@ body[data-active-tab="check"] .check-steps{display:block}
 
 /* v9.12.1: последняя секция вкладки тянется до таббара */
 main{display:flex;flex-direction:column;min-height:calc(100dvh - var(--header-h));padding-bottom:0}
-.section.section-stretch{flex:1 1 auto;margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;display:flex;flex-direction:column;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+.section.section-stretch{flex:1 1 auto;margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;display:flex;flex-direction:column}
 .section.section-stretch > .section-body{flex:1 1 auto}
 .section.section-stretch > .section-header + .section-body{flex:1 1 auto}
 </style>
@@ -1172,7 +1168,7 @@ main{display:flex;flex-direction:column;min-height:calc(100dvh - var(--header-h)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.12.1 · секции до таббара</div>
+  <div class="hint version">French Bakery Аудит · v9.12.2 · откат блокировки/div>
 
 </main>
 
@@ -1657,7 +1653,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.12.1';
+const APP_VERSION = 'v9.12.2';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1779,36 +1775,11 @@ let _historyContentCache = {}; // { 'YYYY-MM/filename.json': {data, ts} }
    ═══════════════════════════════════════════ */
 const $ = id => { try { return document.getElementById(id); } catch (e) { return null; } };
 
-function lockBodyScroll() {
-  if (document.body.dataset.scrollLocked === '1') return;
-  const y = window.scrollY || window.pageYOffset || 0;
-  document.body.dataset.scrollLocked = '1';
-  document.body.dataset.scrollY = String(y);
-  document.body.style.position = 'fixed';
-  document.body.style.top = '-' + y + 'px';
-  document.body.style.left = '0';
-  document.body.style.right = '0';
-  document.body.style.width = '100%';
-}
-function unlockBodyScroll() {
-  if (document.body.dataset.scrollLocked !== '1') return;
-  const y = parseInt(document.body.dataset.scrollY || '0', 10) || 0;
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.left = '';
-  document.body.style.right = '';
-  document.body.style.width = '';
-  delete document.body.dataset.scrollLocked;
-  delete document.body.dataset.scrollY;
-  window.scrollTo(0, y);
-}
 function openModal(id) {
   const el = $(id);
   if (!el) return;
   document.body.style.overflow = 'hidden';
   document.body.classList.add('modal-open');
-  document.documentElement.classList.add('modal-open');
-  lockBodyScroll();
   el.classList.remove('hidden');
 }
 function closeModal(id) {
@@ -1819,8 +1790,6 @@ function closeModal(id) {
   if (!anyOpen) {
     document.body.style.overflow = '';
     document.body.classList.remove('modal-open');
-    document.documentElement.classList.remove('modal-open');
-    unlockBodyScroll();
   }
 }
 function clampNum(v, min, max, fallback) {
