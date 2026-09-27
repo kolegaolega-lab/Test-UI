@@ -762,12 +762,14 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 /* ═══════════════════════════════════════════
    v9.13.1 — Вкладка «Ещё» в стиле v6
    ═══════════════════════════════════════════ */
-.list-row{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--separator);background:transparent;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;font-family:inherit;color:var(--text);cursor:pointer;font-size:14.5px;min-height:auto;border-radius:0;white-space:normal}
+.list-row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--separator);background:transparent;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;font-family:inherit;color:var(--text);cursor:pointer;font-size:14.5px;min-height:auto;border-radius:0;white-space:normal}
 .list-row:last-child{border-bottom:0}
 .list-row:active{background:var(--bg-input)}
-.list-row .lname{flex:1;min-width:0;font-size:14.5px;font-weight:500;line-height:1.3;color:var(--text)}
+.list-row .lname{flex:1;min-width:0;font-size:14.5px;font-weight:500;line-height:1.3;color:var(--text);display:flex;align-items:center;gap:12px}
 .list-row .lval{color:var(--text-secondary);font-size:13px;flex:0 0 auto;font-variant-numeric:tabular-nums;max-width:45%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list-row .chev{color:var(--text-tertiary);font-size:18px;font-weight:300;flex:0 0 auto;line-height:1}
+.list-row .sq{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.list-row .sq svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
 </style>
 </head>
 <body>
@@ -992,12 +994,18 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
     <div class="section-body" style="padding:4px 12px">
       <button type="button" class="list-row" data-action="open-profile">
-        <span class="lname">👤 Мой профиль</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--accent-soft);color:var(--accent)"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></span>
+          Мой профиль
+        </span>
         <span class="lval" id="moreProfileSub">—</span>
         <span class="chev">›</span>
       </button>
       <button type="button" class="list-row" data-action="open-auditors">
-        <span class="lname">👥 Аудиторы</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--purple-soft);color:var(--purple)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          Аудиторы
+        </span>
         <span class="lval">5</span>
         <span class="chev">›</span>
       </button>
@@ -1011,17 +1019,26 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
     <div class="section-body" style="padding:4px 12px">
       <button type="button" class="list-row" data-action="open-catalog">
-        <span class="lname">📚 Справочник</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--green-soft);color:var(--green)"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+          Справочник
+        </span>
         <span class="lval" id="moreCatalogCount">0</span>
         <span class="chev">›</span>
       </button>
       <button type="button" class="list-row" data-action="open-points">
-        <span class="lname">📍 Точки</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--orange-soft);color:var(--orange)"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+          Точки
+        </span>
         <span class="lval" id="pointsCount">0</span>
         <span class="chev">›</span>
       </button>
       <button type="button" class="list-row" data-action="open-prices">
-        <span class="lname">₽ Цены позиций</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--red-soft);color:var(--red)"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
+          Цены позиций
+        </span>
         <span class="lval" id="morePricesCount">0</span>
         <span class="chev">›</span>
       </button>
@@ -1035,17 +1052,26 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
     <div class="section-body" style="padding:4px 12px">
       <button type="button" class="list-row" data-action="open-aliases" id="moreAliasesRow" style="display:none">
-        <span class="lname">⇄ Алиасы</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--accent-soft);color:var(--accent)"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>
+          Алиасы
+        </span>
         <span class="lval" id="aliasesCount">0</span>
         <span class="chev">›</span>
       </button>
       <button type="button" class="list-row" data-action="open-ignored">
-        <span class="lname">∅ Игнор-лист</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--bg-elev-2);color:var(--text-secondary)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg></span>
+          Игнор-лист
+        </span>
         <span class="lval" id="ignoredCount">0</span>
         <span class="chev">›</span>
       </button>
       <button type="button" class="list-row" data-action="open-sync">
-        <span class="lname">🔄 Настройки синхронизации</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--purple-soft);color:var(--purple)"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-8.7-6.8"/><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 8.7 6.8"/><path d="M21 3v6h-6"/><path d="M3 21v-6h6"/></svg></span>
+          Настройки синхронизации
+        </span>
         <span class="lval"></span>
         <span class="chev">›</span>
       </button>
@@ -1059,7 +1085,10 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
     <div class="section-body" style="padding:4px 12px">
       <button type="button" class="list-row" data-action="open-about">
-        <span class="lname">ℹ️ О приложении</span>
+        <span class="lname">
+          <span class="sq" style="background:var(--bg-elev-2);color:var(--text-secondary)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+          О приложении
+        </span>
         <span class="lval" id="moreAppVersion">v9.13.0</span>
         <span class="chev">›</span>
       </button>
