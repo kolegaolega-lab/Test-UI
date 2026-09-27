@@ -721,6 +721,36 @@ body[data-active-tab="check"] .check-steps{display:block}
 .hist-day{display:grid !important;place-items:center !important;gap:0 !important}
 .hist-day .num{width:auto !important;min-width:0 !important;max-width:none !important;height:auto !important;min-height:0 !important;display:block !important;box-sizing:content-box !important;border:0 !important;background:transparent !important;border-radius:0 !important;padding:0 !important;margin:0 !important;line-height:1 !important;font-size:15px !important;font-weight:500 !important}
 .hist-day .dot{position:absolute !important;left:50% !important;bottom:6px !important;top:auto !important;right:auto !important;transform:translateX(-50%) !important;margin:0 !important}
+
+/* ═══════════════════════════════════════════
+   v9.12.0 — Bottom-sheet для «Дня» и «Деталей»
+   ═══════════════════════════════════════════ */
+.modal.bottom-sheet{align-items:flex-end;padding:0}
+.modal.bottom-sheet .modal-content{border-radius:20px 20px 0 0;max-width:640px;width:100%;animation:sheetSlideUp .3s cubic-bezier(.32,.72,0,1)}
+@keyframes sheetSlideUp{from{transform:translateY(100%);opacity:.7}to{transform:translateY(0);opacity:1}}
+.sheet-handle{width:38px;height:5px;border-radius:3px;background:var(--separator-opaque);margin:10px auto 4px;flex:0 0 auto;pointer-events:none}
+.modal.bottom-sheet #dayModalContent,
+.modal.bottom-sheet #checkDetailsContent{height:auto !important;max-height:88dvh !important;border-radius:20px 20px 0 0}
+
+/* Аватары авторов */
+.avatar{width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;flex:0 0 auto;letter-spacing:0;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;line-height:1;user-select:none;-webkit-user-select:none}
+.avatar.sm{width:28px;height:28px;font-size:12px}
+.avatar.lg{width:44px;height:44px;font-size:17px}
+.avatar.c0{background:linear-gradient(135deg,#0a84ff,#3d5afe)}
+.avatar.c1{background:linear-gradient(135deg,#ff9500,#ff3b30)}
+.avatar.c2{background:linear-gradient(135deg,#34c759,#30d158)}
+.avatar.c3{background:linear-gradient(135deg,#af52de,#bf5af2)}
+.avatar.c4{background:linear-gradient(135deg,#ff2d55,#ff6482)}
+.avatar.c5{background:linear-gradient(135deg,#5ac8fa,#0a84ff)}
+.avatar.c6{background:linear-gradient(135deg,#ffcc00,#ff9500)}
+.avatar.c7{background:linear-gradient(135deg,#5856d6,#af52de)}
+
+/* В модалке дня: заменяем emoji-иконку на аватар */
+.day-check-card .avatar{margin-top:1px}
+.dcc-body .dcc-author{display:inline-flex;align-items:center;gap:5px}
+
+/* В деталях проверки: автор рядом с именем */
+.cd-meta .avatar{margin-right:2px}
 </style>
 </head>
 <body>
@@ -1131,7 +1161,7 @@ body[data-active-tab="check"] .check-steps{display:block}
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.11.4 · выравнивание ячеек календаря</div>
+  <div class="hint version">French Bakery Аудит · v9.12.0 · bottom-sheet и аватары</div>
 
 </main>
 
@@ -1549,8 +1579,9 @@ body[data-active-tab="check"] .check-steps{display:block}
 </div>
 
 <!-- ═══════════════ Модалка: День истории ═══════════════ -->
-<div id="dayModal" class="modal hidden">
+<div id="dayModal" class="modal bottom-sheet hidden">
   <div class="modal-content" id="dayModalContent">
+    <div class="sheet-handle"></div>
     <div class="modal-header">
       <h3 id="dayModalTitle">27 сентября 2026</h3>
       <p class="hint" id="dayModalSubtitle">—</p>
@@ -1564,8 +1595,9 @@ body[data-active-tab="check"] .check-steps{display:block}
 </div>
 
 <!-- ═══════════════ Модалка: Детали проверки ═══════════════ -->
-<div id="checkDetailsModal" class="modal hidden">
+<div id="checkDetailsModal" class="modal bottom-sheet hidden">
   <div class="modal-content" id="checkDetailsContent">
+    <div class="sheet-handle"></div>
     <div class="modal-header" style="padding-bottom:4px">
       <h3 id="cdModalTitle" style="display:none">Проверка</h3>
     </div>
@@ -1614,7 +1646,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.11.4';
+const APP_VERSION = 'v9.12.0';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1776,6 +1808,29 @@ function sanitizeFilename(s) {
 }
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* v9.12.0: аватары авторов — инициалы и цвет по имени */
+function getInitials(name) {
+  if (!name || typeof name !== 'string') return '?';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+}
+function getAvatarColorIndex(name) {
+  if (!name || typeof name !== 'string') return 0;
+  let h = 0;
+  const s = name.toLowerCase();
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h) % 8;
+}
+function renderAvatar(name, size) {
+  const cls = 'avatar' + (size ? ' ' + size : '') + ' c' + getAvatarColorIndex(name);
+  const initials = getInitials(name);
+  return '<span class="' + cls + '">' + escapeHtml(initials) + '</span>';
 }
 function safeExcelCell(v) {
   if (typeof v !== 'string') return v;
@@ -3930,20 +3985,23 @@ async function openDayModal(day) {
       let metaText = '';
       let timeText = f.timeHH + ':' + f.timeMM;
       let isMine = false;
+      let authorName = '';
       if (data) {
         numText = data.pointNum || '№—';
         nameText = data.pointName || data.pointAddress || '';
+        authorName = data.authorName || data.authorLogin || f.login || '';
         const { positions, problems } = countCheckProblems(data);
-        metaText = `${data.authorName || f.login} <span class="dot-sep">·</span> ${positions} позиций`;
+        metaText = `${escapeHtml(authorName)} <span class="dot-sep">·</span> ${positions} позиций`;
         if (problems > 0) metaText += ` <span class="dot-sep">·</span> <span class="danger">${problems} ${pluralize(problems, 'проблема', 'проблемы', 'проблем')}</span>`;
         else metaText += ` <span class="dot-sep">·</span> <span class="ok">без проблем</span>`;
         isMine = (myLogin && f.login === myLogin) || false;
       } else {
         numText = f.pointId || '№—';
-        metaText = `${f.login} <span class="dot-sep">·</span> <span class="warn">не удалось загрузить</span>`;
+        authorName = f.login || '';
+        metaText = `${escapeHtml(f.login)} <span class="dot-sep">·</span> <span class="warn">не удалось загрузить</span>`;
       }
       card.innerHTML =
-        '<div class="dcc-icon">📍</div>' +
+        renderAvatar(authorName, 'lg') +
         '<div class="dcc-body">' +
           '<div class="dcc-num">' + escapeHtml(numText) + (isMine ? ' <span class="dcc-you">Вы</span>' : '') + '</div>' +
           (nameText ? '<div class="dcc-name">' + escapeHtml(nameText) + '</div>' : '') +
@@ -3989,7 +4047,7 @@ function openCheckDetails(snapshot) {
   const metaDiv = document.createElement('div');
   metaDiv.className = 'cd-meta';
   metaDiv.innerHTML =
-    '<span>👤 ' + escapeHtml(snapshot.authorName || snapshot.authorLogin || '—') + '</span>' +
+    '<span>' + renderAvatar(snapshot.authorName || snapshot.authorLogin || '?', 'sm') + ' ' + escapeHtml(snapshot.authorName || snapshot.authorLogin || '—') + '</span>' +
     (timeLabel ? '<span>🕐 ' + timeLabel + '</span>' : '') +
     (snapshot.date ? '<span>📅 ' + escapeHtml(snapshot.date) + '</span>' : '');
   body.appendChild(metaDiv);
