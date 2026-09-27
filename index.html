@@ -464,6 +464,16 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
 .profile-line{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-tertiary);margin-top:2px}
 .profile-line .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block}
 .profile-line .sync-dot.wait{background:var(--orange)}
+.profile-line .sync-dot.syncing{background:var(--accent);animation:pulseAnim 1.5s infinite}
+.profile-line .sync-dot.error{background:var(--red)}
+.history-btn{margin:12px;padding:12px;border-radius:12px;background:var(--bg-input);border:1px solid var(--separator);display:flex;flex-direction:column;gap:8px}
+.history-btn .hb-title{font-size:12.5px;color:var(--text-secondary);line-height:1.4;margin:0}
+.history-btn .hb-title b{color:var(--text);font-weight:600}
+.history-btn button{padding:12px;border-radius:10px;background:#0a84ff;color:#fff;font-weight:600;font-size:14.5px;border:0;font-family:inherit;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px}
+.history-btn button:disabled{opacity:.5;cursor:not-allowed}
+.history-btn button.busy{pointer-events:none;opacity:.7}
+.history-btn button.ok{background:#34c759}
+.history-btn button.err{background:#ff3b30}
 .profile-line b{color:var(--text-secondary);font-weight:600}
 .first-run-modal{max-width:440px}
 .first-run-modal .modal-header{padding:24px 20px 14px;text-align:center}
@@ -839,7 +849,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.9.0 · профиль · точки</div>
+  <div class="hint version">French Bakery Аудит · v9.9.1 · профиль · точки · история</div>
 
 </main>
 
@@ -1253,7 +1263,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.9.0';
+const APP_VERSION = 'v9.9.1';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1264,6 +1274,13 @@ const PROFILE_KEY = 'fbAuditProfile';
 const POINTS_KEY = 'fbAuditPoints';
 const ACTIVE_POINT_KEY = 'fbAuditActivePoint';
 const ROUTE_KEY = 'fbAuditRoute';
+
+/* === v9.9.1: синхронизация истории === */
+const HISTORY_CACHE_KEY = 'fbAuditHistoryCache';
+const HISTORY_QUEUE_KEY = 'fbAuditSyncQueue';
+const HISTORY_FETCH_LAST_KEY = 'fbAuditHistoryLastFetch';
+const HISTORY_DIR = 'history';
+const HISTORY_FETCH_COOLDOWN_MS = 30 * 60 * 1000;
 
 /* === GEMINI === */
 const GEMINI_KEY = 'fbAuditGeminiKey';
@@ -1349,6 +1366,11 @@ let _profile = null;
 let _points = [];
 let _activePointId = null;
 let _route = null;
+
+/* === v9.9.1: синхронизация истории === */
+let _historyCache = {};
+let _historyQueue = [];
+let _historySyncing = false;
 
 /* ═══════════════════════════════════════════
    БАЗОВЫЕ УТИЛИТЫ
@@ -2727,6 +2749,295 @@ function ensureRouteToday() {
     saveRoute();
   }
   return _route;
+}
+  
+  /* ═══════════════════════════════════════════
+   v9.9.1 — СИНХРОНИЗАЦИЯ ИСТОРИИ ПРОВЕРОК
+   ═══════════════════════════════════════════ */
+function getSyncToken() {
+  if (_profile && _profile.token) return _profile.token;
+  try { return localStorage.getItem(ACCESS_KEY) || ''; } catch (e) { return ''; }
+}
+function updateSyncIndicator(state) {
+  // state: '', 'wait', 'syncing', 'error'
+  const el = $('headerProfileLine');
+  if (!el) return;
+  const dot = el.querySelector('.sync-dot');
+  if (!dot) return;
+  dot.classList.remove('wait', 'syncing', 'error');
+  if (state === 'wait') dot.classList.add('wait');
+  else if (state === 'syncing') dot.classList.add('syncing');
+  else if (state === 'error') dot.classList.add('error');
+}
+
+/* --- Очередь оффлайн --- */
+function loadHistoryQueue() {
+  try {
+    const raw = localStorage.getItem(HISTORY_QUEUE_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(x => x && typeof x === 'object' && typeof x.path === 'string' && x.data);
+  } catch (e) { return []; }
+}
+function saveHistoryQueue() {
+  try { localStorage.setItem(HISTORY_QUEUE_KEY, JSON.stringify(_historyQueue)); } catch (e) {}
+  updateSyncIndicator(_historyQueue.length ? 'wait' : '');
+}
+function enqueueHistoryEntry(path, data) {
+  if (!path || !data) return;
+  if (_historyQueue.some(x => x.path === path)) return;
+  _historyQueue.push({ path, data, ts: Date.now() });
+  saveHistoryQueue();
+}
+function removeFromQueue(path) {
+  _historyQueue = _historyQueue.filter(x => x.path !== path);
+  saveHistoryQueue();
+}
+
+/* --- Имя файла и snapshot --- */
+function buildHistoryFilename() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const folder = `${y}-${m}`;
+  const p = getActivePoint();
+  const pointId = p ? p.id : 'nopoint';
+  const login = (_profile && _profile.login) ? _profile.login : ((_profile && _profile.name) ? _profile.name.toLowerCase().replace(/[^a-z0-9а-яё_-]/gi, '_').slice(0, 20) : 'anon');
+  const fname = `${d}-${hh}${mm}${ss}-${pointId}-${login}.json`;
+  return `${HISTORY_DIR}/${folder}/${fname}`;
+}
+function buildCheckSnapshot() {
+  const now = new Date();
+  const p = getActivePoint();
+  const cats = {};
+  let totalFreshOnShelf = 0, totalFreshSold = 0;
+  let totalExpiredOnShelf = 0, totalSoldExpired = 0;
+  let totalPositions = 0;
+  CATEGORY_ORDER.forEach(cat => {
+    const rows = tableRows.filter(r => r.category === cat);
+    if (!rows.length) return;
+    const items = rows.map(r => {
+      const c = computeFIFO(r);
+      const incoming = (r.incoming || []).map(p2 => ({ date: p2.date, qty: p2.qty }));
+      totalPositions++;
+      if (c.freshOnShelf != null) totalFreshOnShelf += c.freshOnShelf;
+      if (c.freshSold != null) totalFreshSold += c.freshSold;
+      if (c.expiredOnShelf != null) totalExpiredOnShelf += c.expiredOnShelf;
+      if (c.soldExpired != null) totalSoldExpired += c.soldExpired;
+      return {
+        name: r.name,
+        stock: r.stock,
+        sales: r.sales || 0,
+        shelfLife: r.shelfLife,
+        incoming,
+        freshOnShelf: c.freshOnShelf,
+        freshSold: c.freshSold,
+        expiredOnShelf: c.expiredOnShelf,
+        soldExpired: c.soldExpired
+      };
+    });
+    cats[cat] = items;
+  });
+  return {
+    version: 1,
+    createdAt: now.toISOString(),
+    date: getTodayStr(),
+    pointId: p ? p.id : null,
+    pointNum: p ? p.num : '',
+    pointName: p ? p.name : '',
+    pointAddress: p ? p.address : '',
+    authorName: (_profile && _profile.name) ? _profile.name : '',
+    authorLogin: (_profile && _profile.login) ? _profile.login : '',
+    categories: cats,
+    totals: {
+      positions: totalPositions,
+      freshOnShelf: totalFreshOnShelf,
+      freshSold: totalFreshSold,
+      expiredOnShelf: totalExpiredOnShelf,
+      soldExpired: totalSoldExpired
+    }
+  };
+}
+
+/* --- Пуш одного файла --- */
+async function pushHistoryFile(path, data) {
+  const token = getSyncToken();
+  if (!token) throw new Error('Нет токена — настройте профиль');
+  const url = `${GITHUB_API}/repos/${GITHUB_REPO}/contents/${path}`;
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+  let sha = null;
+  try {
+    const getRes = await fetchWithTimeout(url, {
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+      cache: 'no-store'
+    }, 20000);
+    if (getRes.ok) {
+      const info = await getRes.json();
+      sha = info.sha || null;
+    } else if (getRes.status === 401) {
+      throw new Error('Неверный токен');
+    } else if (getRes.status !== 404 && getRes.status !== 200) {
+      // 404 — файла нет, это норма
+    }
+  } catch (e) {
+    if (e.message && e.message.indexOf('токен') >= 0) throw e;
+  }
+  const body = {
+    message: `history: ${path.split('/').pop()}`,
+    content,
+    ...(sha ? { sha } : {})
+  };
+  const putRes = await fetchWithTimeout(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  }, 30000);
+  if (putRes.ok) return { ok: true };
+  if (putRes.status === 401) throw new Error('Неверный токен');
+  if (putRes.status === 403) throw new Error('Лимит GitHub исчерпан, попробуйте позже');
+  if (putRes.status === 409 || putRes.status === 422) {
+    // Конфликт версий — пробуем ещё раз с sha
+    try {
+      const getRes2 = await fetchWithTimeout(url, {
+        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+        cache: 'no-store'
+      }, 20000);
+      if (getRes2.ok) {
+        const info2 = await getRes2.json();
+        if (info2.sha) {
+          const body2 = { message: `history: ${path.split('/').pop()}`, content, sha: info2.sha };
+          const putRes2 = await fetchWithTimeout(url, {
+            method: 'PUT',
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify(body2)
+          }, 30000);
+          if (putRes2.ok) return { ok: true };
+        }
+      }
+    } catch (e) {}
+    throw new Error(`Ошибка ${putRes.status}`);
+  }
+  throw new Error(`Ошибка ${putRes.status}`);
+}
+
+/* --- Слить очередь --- */
+async function flushHistoryQueue() {
+  if (_historySyncing) return;
+  if (!_historyQueue.length) return;
+  if (!getSyncToken()) return;
+  _historySyncing = true;
+  updateSyncIndicator('syncing');
+  let ok = 0, fail = 0;
+  const queueCopy = _historyQueue.slice();
+  for (const entry of queueCopy) {
+    try {
+      await pushHistoryFile(entry.path, entry.data);
+      removeFromQueue(entry.path);
+      ok++;
+    } catch (e) {
+      fail++;
+      if (e.message && (e.message.indexOf('Неверный токен') >= 0)) break;
+    }
+    await new Promise(r => setTimeout(r, 400));
+  }
+  _historySyncing = false;
+  if (_historyQueue.length) updateSyncIndicator('wait');
+  else if (fail) updateSyncIndicator('error');
+  else updateSyncIndicator('');
+  return { ok, fail };
+}
+
+/* --- Публичная функция «отправить отчёт» --- */
+async function sendReportToHistory() {
+  const btn = $('sendReportBtn');
+  const statusEl = $('sendReportStatus');
+  const setBtn = (cls, text, disabled) => {
+    if (!btn) return;
+    btn.className = cls;
+    btn.textContent = text;
+    btn.disabled = !!disabled;
+  };
+  const setStatus = (cls, text) => {
+    if (!statusEl) return;
+    statusEl.className = 'status show ' + cls;
+    statusEl.textContent = text;
+  };
+  if (!_profile || !_profile.token) {
+    setStatus('err', 'Сначала настройте профиль в разделе «Справочник → Мой профиль».');
+    return;
+  }
+  if (!tableRows.length) {
+    setStatus('err', 'Нет данных для отправки.');
+    return;
+  }
+  if (!getActivePoint()) {
+    setStatus('err', 'Выберите активную точку в шапке.');
+    return;
+  }
+  const snapshot = buildCheckSnapshot();
+  const path = buildHistoryFilename();
+  setBtn('busy', 'Отправка…', true);
+  updateSyncIndicator('syncing');
+  try {
+    await pushHistoryFile(path, snapshot);
+    setBtn('ok', '✓ Отправлено', true);
+    setStatus('ok', 'Проверка сохранена в общую историю.');
+    updateSyncIndicator('');
+    showToast('Проверка отправлена');
+  } catch (e) {
+    const msg = e.message || 'Ошибка';
+    enqueueHistoryEntry(path, snapshot);
+    setBtn('err', 'Не отправлено', true);
+    setStatus('warn', 'Нет связи — проверка в очереди. Уйдёт автоматически при следующем подключении. (' + msg + ')');
+    updateSyncIndicator('wait');
+    showToast('В очереди, попробуем позже');
+  }
+}
+
+/* --- Тихий pull точек с сервера --- */
+async function pullPointsSilently() {
+  if (!getSyncToken()) return;
+  try {
+    const remote = await fetchRemoteCatalog();
+    if (!remote) return;
+    if (Array.isArray(remote.points)) {
+      const seen = new Set();
+      const cleanedPoints = [];
+      for (const p of remote.points.slice(0, 500)) {
+        if (!p || typeof p !== 'object') continue;
+        const id = safeStr(p.id || '', 30);
+        const num = safeStr(p.num || '', 20);
+        const name = safeStr(p.name || '', 80);
+        const address = safeStr(p.address || '', 120);
+        if (!id || !num || seen.has(id)) continue;
+        seen.add(id);
+        cleanedPoints.push({ id, num, name, address });
+      }
+      if (cleanedPoints.length) {
+        _points = cleanedPoints;
+        savePoints();
+        if (_activePointId && !getPointById(_activePointId)) _activePointId = null;
+        if (!_activePointId && _points.length) _activePointId = _points[0].id;
+        try {
+          if (_activePointId) localStorage.setItem(ACTIVE_POINT_KEY, _activePointId);
+        } catch (e) {}
+        updateHeaderPoint();
+        updatePointsCount();
+        syncActivePointToInput();
+      }
+    }
+  } catch (e) {
+    console.warn('pullPointsSilently:', e);
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -6087,6 +6398,23 @@ function renderReport() {
       <div class="report-summary-row"><span>Продано просрочкой</span><b>${totalSoldExpired}</b></div>
     `;
     body.appendChild(summary);
+
+    const histBox = document.createElement('div');
+    histBox.className = 'history-btn';
+    const histTitle = document.createElement('p');
+    histTitle.className = 'hb-title';
+    histTitle.innerHTML = '<b>Сохранить в общую историю?</b> Проверка появится у всех аудиторов на графике.';
+    histBox.appendChild(histTitle);
+    const histBtn = document.createElement('button');
+    histBtn.id = 'sendReportBtn';
+    histBtn.type = 'button';
+    histBtn.textContent = 'Отправить в историю';
+    histBox.appendChild(histBtn);
+    const histStatus = document.createElement('div');
+    histStatus.id = 'sendReportStatus';
+    histStatus.className = 'status';
+    histBox.appendChild(histStatus);
+    body.appendChild(histBox);
   } else {
     const cat = _reportView;
     if (title) title.textContent = CATEGORY_LABELS[cat];
@@ -6984,8 +7312,16 @@ function bindUI() {
 
   const applyBtn = $('applyCsvBtn'); if (applyBtn) applyBtn.onclick = applyCSV;
   const exportBtn = $('exportBtn'); if (exportBtn) exportBtn.onclick = exportExcel;
-
   const finishBtn = $('finishCheckBtn'); if (finishBtn) finishBtn.onclick = openReport;
+
+  // Клик по кнопке «Отправить в историю» внутри отчёта (делегирование)
+  document.addEventListener('click', e => {
+    const btn = e.target.closest && e.target.closest('#sendReportBtn');
+    if (!btn) return;
+    if (btn.disabled) return;
+    e.preventDefault();
+    sendReportToHistory();
+  });
   const reportCloseBtn = $('reportCloseBtn'); if (reportCloseBtn) reportCloseBtn.onclick = closeReport;
   const reportBackBtn = $('reportBackBtn');
   if (reportBackBtn) reportBackBtn.onclick = () => { _reportView = null; renderReport(); };
@@ -7619,6 +7955,16 @@ function init() {
   updateCatalogMeta();
   restoreOwnerMode();
   syncCheckOnStartup();
+
+  /* === v9.9.1: очередь и тихий pull точек === */
+  _historyQueue = loadHistoryQueue();
+  updateSyncIndicator(_historyQueue.length ? 'wait' : '');
+  if (_historyQueue.length) {
+    setTimeout(() => { flushHistoryQueue(); }, 2000);
+  }
+  if (_profile && _profile.token) {
+    setTimeout(() => { pullPointsSilently(); }, 1500);
+  }
   window.addEventListener('storage', e => {
     if (e.key === SESSION_KEY && !isRestoring) {
       const data = loadSession();
@@ -7642,7 +7988,7 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.9.0 · profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.9.1 · profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· queue:', _historyQueue.length, '· catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
 }
 
 /* ═══════════════════════════════════════════
