@@ -642,6 +642,8 @@ body[data-active-tab="check"] .check-steps{display:block}
 .tabbar-btn.active{color:var(--accent)}
 .tabbar-btn .tb-icon{width:22px;height:22px;display:block;line-height:0}
 .tabbar-btn .tb-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;display:block}
+.tabbar-btn[data-tab="catalog"] .tb-icon svg{fill:currentColor;stroke:none}
+.tabbar-btn[data-tab="catalog"] .tb-icon svg circle{fill:currentColor}
 .tabbar-btn .tb-label{display:block;line-height:1.2;font-size:10px;font-weight:600}
 .tabbar-spacer{flex:0 0 64px;pointer-events:none}
 .tabbar-fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px) / 2);width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;border:4px solid var(--bg-card);box-shadow:0 6px 18px rgba(10,132,255,.38),0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;z-index:503;cursor:pointer;padding:0;min-height:0;transition:transform .18s cubic-bezier(.32,.72,0,1),box-shadow .18s;font-family:inherit}
@@ -1240,8 +1242,8 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     <span class="tb-label">График</span>
   </button>
   <button type="button" class="tabbar-btn" data-tab="catalog">
-    <span class="tb-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
-    <span class="tb-label">Справочник</span>
+    <span class="tb-icon"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></span>
+    <span class="tb-label">Ещё</span>
   </button>
 </nav>
 
