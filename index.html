@@ -41,7 +41,7 @@
   }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;background:var(--bg)}
 html{overflow-x:clip;scrollbar-width:none;-ms-overflow-style:none}
 body{overflow-x:clip}
 html::-webkit-scrollbar{width:0;height:0;display:none}
@@ -636,8 +636,7 @@ body[data-active-tab="catalog"] .section:not([data-tab="catalog"]),
 body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
 .check-steps{display:none}
 body[data-active-tab="check"] .check-steps{display:block}
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:500;background:rgba(255,255,255,.94);border-top:1px solid var(--separator);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
-@media (prefers-color-scheme:dark){.tabbar{background:rgba(28,28,30,.94)}}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:500;background:var(--bg-card);border-top:1px solid var(--separator);display:flex;padding-bottom:max(env(safe-area-inset-bottom,0px), 20px)}
 .tabbar-btn{flex:1 1 0;min-width:0;background:transparent;border:0;padding:8px 4px 6px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.01em;transition:color .15s;border-radius:0;white-space:nowrap;line-height:1.1}
 .tabbar-btn:active{opacity:.6}
 .tabbar-btn.active{color:var(--accent)}
@@ -1167,7 +1166,7 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.12.4 · секции по содержимому</div>
+  <div class="hint version">French Bakery Аудит · v9.12.5 · таббар к низу</div>
 
 </main>
 
@@ -1652,7 +1651,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.12.4';
+const APP_VERSION = 'v9.12.5';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
