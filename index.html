@@ -486,6 +486,10 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
 .hist-legend i.today{background:var(--accent);border-color:var(--accent)}
 .hist-empty{padding:24px 16px;text-align:center;font-size:13px;color:var(--text-tertiary);line-height:1.5}
 .hist-empty b{color:var(--text-secondary);font-weight:600;display:block;margin-bottom:4px}
+.hist-summary{margin:8px 12px 14px;padding:12px;background:var(--bg-input);border-radius:12px;font-size:12.5px;color:var(--text-secondary);line-height:1.6;border:1px solid var(--separator)}
+.hist-summary b{color:var(--text);font-weight:700}
+.hist-filter button .cnt{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--bg-elev-2);color:var(--text-tertiary);min-width:20px;text-align:center;margin-left:4px;display:inline-block}
+.hist-filter button.active .cnt{background:var(--bg-input);color:var(--text-secondary)}
 /* ═══════════════════════════════════════════
    v9.9.6 — Модалка дня и детали проверки
    ═══════════════════════════════════════════ */
@@ -1023,8 +1027,8 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
         <button type="button" class="hist-nav-btn" id="histRefreshBtn" aria-label="Обновить" style="margin-left:6px;font-size:16px">↻</button>
       </div>
       <div class="hist-filter" id="histFilter">
-        <button type="button" data-filter="all" class="active">Все аудиторы</button>
-        <button type="button" data-filter="me">Только я</button>
+        <button type="button" data-filter="all" class="active">Все аудиторы <span class="cnt" id="histCountAll">0</span></button>
+        <button type="button" data-filter="me">Только я <span class="cnt" id="histCountMe">0</span></button>
       </div>
       <div class="hist-week">
         <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
@@ -1035,6 +1039,7 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
         <span><i class="has"></i>Есть проверки</span>
         <span><i class="today"></i>Сегодня</span>
       </div>
+      <div class="hist-summary" id="histSummary"></div>
     </div>
     <div id="historyEmpty" class="hist-empty" style="display:none">
       <b>Пока нет проверок</b>
@@ -1059,7 +1064,7 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.10.0 · маршрут дня</div>
+  <div class="hint version">French Bakery Аудит · v9.10.1 · маршрут + сводка</div>
 
 </main>
 
@@ -1541,7 +1546,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.10.0';
+const APP_VERSION = 'v9.10.1';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -3612,6 +3617,36 @@ function renderCalendar() {
     byDay[f.day]++;
   }
   const totalChecks = Object.keys(byDay).reduce((s, k) => s + byDay[k], 0);
+
+  /* === v9.10.1: счётчики фильтра + сводка месяца === */
+  const allFiles = cache.files || [];
+  const myLoginForCount = _profile && _profile.login ? _profile.login : '';
+  const myFilesCount = myLoginForCount ? allFiles.filter(f => f.login === myLoginForCount).length : 0;
+  const elCountAll = $('histCountAll'); if (elCountAll) elCountAll.textContent = String(allFiles.length);
+  const elCountMe = $('histCountMe'); if (elCountMe) elCountMe.textContent = String(myFilesCount);
+
+  const summaryEl = $('histSummary');
+  if (summaryEl) {
+    if (!cache.fetchedAt) {
+      summaryEl.innerHTML = '<b>Сводка за месяц</b><br>Пока не загружена. Тапните ↻ для обновления.';
+    } else if (!allFiles.length) {
+      const mLabel = formatMonthLabel(_calendarMonth);
+      summaryEl.innerHTML = '<b>' + escapeHtml(mLabel) + '</b><br>За этот месяц проверок пока нет.';
+    } else {
+      const uniquePoints = new Set();
+      const uniqueAuthors = new Set();
+      allFiles.forEach(f => {
+        if (f.pointId) uniquePoints.add(f.pointId);
+        if (f.login) uniqueAuthors.add(f.login);
+      });
+      const mLabel = formatMonthLabel(_calendarMonth);
+      summaryEl.innerHTML =
+        '<b>' + escapeHtml(mLabel) + ':</b> ' +
+        totalChecks + ' ' + pluralize(totalChecks, 'проверка', 'проверки', 'проверок') +
+        ' · ' + uniquePoints.size + ' ' + pluralize(uniquePoints.size, 'точка', 'точки', 'точек') +
+        ' · ' + uniqueAuthors.size + ' ' + pluralize(uniqueAuthors.size, 'аудитор', 'аудитора', 'аудиторов');
+    }
+  }
 
   if (wrap) wrap.style.display = '';
   if (emptyBlock) emptyBlock.style.display = (files.length === 0 && cache.fetchedAt) ? 'block' : 'none';
