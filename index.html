@@ -759,6 +759,11 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .list-row .chev{color:var(--text-tertiary);font-size:18px;font-weight:300;flex:0 0 auto;line-height:1}
 .list-row .sq{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
 .list-row .sq svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
+
+/* v9.14.0: справочник только для чтения — серые поля */
+.row-cat input.pill[readonly],
+.row-cat input.pill:disabled{color:var(--text-secondary);background:var(--bg-input);border-color:var(--separator);opacity:1;cursor:default}
+.cat-cycle:disabled{opacity:.55;cursor:default}
 </style>
 </head>
 <body>
@@ -1023,7 +1028,7 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
         <span class="lval" id="pointsCount">0</span>
         <span class="chev">›</span>
       </button>
-      <button type="button" class="list-row" data-action="open-prices">
+      <button type="button" class="list-row" data-action="open-prices" id="morePricesRow" style="display:none">
         <span class="lname">
           <span class="sq" style="background:var(--red-soft);color:var(--red)"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>
           Цены позиций
@@ -4404,6 +4409,8 @@ function renderPointPickerList() {
 }
 function openPointPicker(mode) {
   _pointPickerMode = mode || null;
+  const manageBtn = $('pointPickerManageBtn');
+  if (manageBtn) manageBtn.style.display = _isOwner ? 'inline-flex' : 'none';
   const header = document.querySelector('#pointPickerContent .modal-header');
   if (header) {
     const h3 = header.querySelector('h3');
@@ -8396,6 +8403,8 @@ function renderMoreCounts() {
   if (catEl) catEl.textContent = String(PRODUCTS.length);
   const priceEl = $('morePricesCount');
   if (priceEl) priceEl.textContent = String(Object.keys(PRICES).length);
+  const priceRow = $('morePricesRow');
+  if (priceRow) priceRow.style.display = _isOwner ? 'flex' : 'none';
   const ignEl = $('ignoredCount');
   if (ignEl) ignEl.textContent = String(IGNORED.length);
   const aliEl = $('aliasesCount');
