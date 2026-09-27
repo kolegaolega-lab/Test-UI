@@ -635,7 +635,8 @@ body[data-active-tab="check"] .check-steps{display:block}
 .tabbar-btn{flex:1 1 0;min-width:0;background:transparent;border:0;padding:8px 4px 6px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.01em;transition:color .15s;border-radius:0;white-space:nowrap;line-height:1.1}
 .tabbar-btn:active{opacity:.6}
 .tabbar-btn.active{color:var(--accent)}
-.tabbar-btn .tb-icon{font-size:20px;line-height:1;display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Emoji","Apple Color Emoji",sans-serif}
+.tabbar-btn .tb-icon{width:22px;height:22px;display:block;line-height:0}
+.tabbar-btn .tb-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;display:block}
 .tabbar-btn .tb-label{display:block;line-height:1.2;font-size:10px;font-weight:600}
 .tabbar-spacer{flex:0 0 64px;pointer-events:none}
 .tabbar-fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;border:4px solid var(--bg-card);box-shadow:0 6px 18px rgba(10,132,255,.38),0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;z-index:503;cursor:pointer;padding:0;min-height:0;transition:transform .18s cubic-bezier(.32,.72,0,1),box-shadow .18s;font-family:inherit}
@@ -1138,17 +1139,21 @@ body[data-active-tab="check"] .check-steps{display:block}
 
 <nav class="tabbar" id="tabbar">
   <button type="button" class="tabbar-btn active" data-tab="home">
-    <span class="tb-icon">🏠</span><span class="tb-label">Сегодня</span>
+    <span class="tb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+    <span class="tb-label">Сегодня</span>
   </button>
   <button type="button" class="tabbar-btn" data-tab="check">
-    <span class="tb-icon">📋</span><span class="tb-label">Проверка</span>
+    <span class="tb-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
+    <span class="tb-label">Проверка</span>
   </button>
   <span class="tabbar-spacer"></span>
   <button type="button" class="tabbar-btn" data-tab="history">
-    <span class="tb-icon">📅</span><span class="tb-label">График</span>
+    <span class="tb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span>
+    <span class="tb-label">График</span>
   </button>
   <button type="button" class="tabbar-btn" data-tab="catalog">
-    <span class="tb-icon">📚</span><span class="tb-label">Справочник</span>
+    <span class="tb-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+    <span class="tb-label">Справочник</span>
   </button>
 </nav>
 
