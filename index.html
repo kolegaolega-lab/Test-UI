@@ -636,7 +636,7 @@ body[data-active-tab="catalog"] .section:not([data-tab="catalog"]),
 body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
 .check-steps{display:none}
 body[data-active-tab="check"] .check-steps{display:block}
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:500;background:var(--bg-card);border-top:1px solid var(--separator);display:flex;padding-bottom:max(env(safe-area-inset-bottom,0px), 20px)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:500;background:var(--bg-card);border-top:1px solid var(--separator);display:flex;padding-bottom:calc(env(safe-area-inset-bottom,0px) / 2)}
 .tabbar-btn{flex:1 1 0;min-width:0;background:transparent;border:0;padding:8px 4px 6px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.01em;transition:color .15s;border-radius:0;white-space:nowrap;line-height:1.1}
 .tabbar-btn:active{opacity:.6}
 .tabbar-btn.active{color:var(--accent)}
