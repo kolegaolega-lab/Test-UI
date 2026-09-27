@@ -455,6 +455,36 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
 .manual-btn.primary{background:#0a84ff;color:#fff;font-weight:600 !important;border:0;box-shadow:0 1px 2px rgba(0,0,0,.06),inset 0 0 0 .5px rgba(255,255,255,.1)}
 .manual-btn.primary:active{opacity:.85}
 /* ═══════════════════════════════════════════
+   v9.9.2 — Календарь истории
+   ═══════════════════════════════════════════ */
+.hist-cal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 8px}
+.hist-cal-month{font-size:17px;font-weight:800;letter-spacing:-.4px;text-align:center;flex:1;color:var(--text)}
+.hist-nav-btn{width:36px;height:36px;padding:0;border-radius:50%;background:var(--bg-input);border:0;color:var(--text);font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;line-height:1;min-height:auto;flex:0 0 auto}
+.hist-nav-btn:active{background:var(--bg-elev-2)}
+.hist-nav-btn:disabled{opacity:.35;cursor:not-allowed}
+.hist-filter{display:flex;background:var(--bg-input);border-radius:10px;padding:3px;gap:2px;margin:0 12px 12px}
+.hist-filter button{flex:1;padding:8px 10px;background:transparent;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-secondary);font-family:inherit;cursor:pointer;border:0;min-height:auto;line-height:1.2;white-space:nowrap}
+.hist-filter button.active{background:var(--bg-card);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.hist-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 12px 6px}
+.hist-week span{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);text-align:center;padding:6px 0}
+.hist-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 12px 12px}
+.hist-day{aspect-ratio:1;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:transparent;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;border:0;font-family:inherit;position:relative;padding:0;min-height:0}
+.hist-day:not(.empty):active{background:var(--bg-input)}
+.hist-day.empty{opacity:0;pointer-events:none}
+.hist-day .num{font-size:14px;font-weight:500;line-height:1;z-index:2;color:var(--text)}
+.hist-day .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);margin-top:3px;z-index:2;opacity:0;transition:opacity .15s}
+.hist-day.has .dot{opacity:1}
+.hist-day.today .num{color:#fff;font-weight:700}
+.hist-day.today{background:var(--accent)}
+.hist-day.today .dot{background:#fff}
+.hist-legend{padding:8px 12px 14px;font-size:11.5px;color:var(--text-secondary);display:flex;gap:14px;flex-wrap:wrap;border-top:1px solid var(--separator);margin-top:6px}
+.hist-legend span{display:inline-flex;align-items:center;gap:5px}
+.hist-legend i{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--bg-input);border:1px solid var(--separator-opaque);font-style:normal}
+.hist-legend i.has{background:var(--accent);border-color:var(--accent)}
+.hist-legend i.today{background:var(--accent);border-color:var(--accent)}
+.hist-empty{padding:24px 16px;text-align:center;font-size:13px;color:var(--text-tertiary);line-height:1.5}
+.hist-empty b{color:var(--text-secondary);font-weight:600;display:block;margin-bottom:4px}
+/* ═══════════════════════════════════════════
    v9.9.0 — Профиль / Точки / Первый запуск
    ═══════════════════════════════════════════ */
 .point-chip{display:none;align-items:center;gap:5px;background:var(--accent-soft);color:var(--accent);border:0;padding:6px 10px;border-radius:99px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;flex:0 0 auto;margin-left:auto;transition:transform .15s,opacity .15s}
@@ -832,6 +862,38 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
+  <!-- ═══════════════ История проверок ═══════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <h2>История проверок</h2>
+      <p class="desc">Все аудиторы на всех точках. Тап → детали дня.</p>
+    </div>
+    <div id="historyCalendarWrap" style="padding:0">
+      <div class="hist-cal-header">
+        <button type="button" class="hist-nav-btn" id="histPrevMonth" aria-label="Предыдущий месяц">‹</button>
+        <div class="hist-cal-month" id="histMonthLabel">—</div>
+        <button type="button" class="hist-nav-btn" id="histNextMonth" aria-label="Следующий месяц">›</button>
+      </div>
+      <div class="hist-filter" id="histFilter">
+        <button type="button" data-filter="all" class="active">Все аудиторы</button>
+        <button type="button" data-filter="me">Только я</button>
+      </div>
+      <div class="hist-week">
+        <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+      </div>
+      <div class="hist-grid" id="histGrid"></div>
+      <div class="hist-legend">
+        <span><i></i>Проверок не было</span>
+        <span><i class="has"></i>Есть проверки</span>
+        <span><i class="today"></i>Сегодня</span>
+      </div>
+    </div>
+    <div id="historyEmpty" class="hist-empty" style="display:none">
+      <b>Пока нет проверок</b>
+      Как только аудиторы отправят отчёты — они появятся здесь.
+    </div>
+  </div>
+
   <!-- ═══════════════ Экспорт ═══════════════ -->
   <div class="section">
     <div class="section-header">
@@ -849,7 +911,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.9.1 · профиль · точки · история</div>
+  <div class="hint version">French Bakery Аудит · v9.9.2 · профиль · точки · график</div>
 
 </main>
 
@@ -1263,7 +1325,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.9.1';
+const APP_VERSION = 'v9.9.2';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1371,6 +1433,8 @@ let _route = null;
 let _historyCache = {};
 let _historyQueue = [];
 let _historySyncing = false;
+let _calendarMonth = '';
+let _calendarFilter = 'all';
 
 /* ═══════════════════════════════════════════
    БАЗОВЫЕ УТИЛИТЫ
@@ -3038,6 +3102,234 @@ async function pullPointsSilently() {
   } catch (e) {
     console.warn('pullPointsSilently:', e);
   }
+}
+
+/* ═══════════════════════════════════════════
+   v9.9.2 — ЗАГРУЗКА И РЕНДЕР КАЛЕНДАРЯ
+   ═══════════════════════════════════════════ */
+const MONTH_NAMES_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+function loadHistoryCache() {
+  try {
+    const raw = localStorage.getItem(HISTORY_CACHE_KEY);
+    if (!raw) return {};
+    const d = JSON.parse(raw);
+    if (!d || typeof d !== 'object' || Array.isArray(d)) return {};
+    return d;
+  } catch (e) { return {}; }
+}
+function saveHistoryCache() {
+  try {
+    // Ограничим: оставим не больше 6 месяцев
+    const keys = Object.keys(_historyCache).sort().reverse();
+    if (keys.length > 6) {
+      const trimmed = {};
+      for (let i = 0; i < 6; i++) trimmed[keys[i]] = _historyCache[keys[i]];
+      _historyCache = trimmed;
+    }
+    localStorage.setItem(HISTORY_CACHE_KEY, JSON.stringify(_historyCache));
+  } catch (e) { console.warn('saveHistoryCache:', e); }
+}
+function getMonthKeyFromDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function formatMonthLabel(yyyymm) {
+  const parts = String(yyyymm || '').split('-');
+  if (parts.length !== 2) return '—';
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (!isFinite(y) || !isFinite(m) || m < 1 || m > 12) return '—';
+  return MONTH_NAMES_RU[m-1] + ' ' + y;
+}
+
+/* Имя файла: "27-142233-p037-alex.json" */
+function parseHistoryFilename(fname) {
+  if (typeof fname !== 'string') return null;
+  if (!fname.endsWith('.json')) return null;
+  const base = fname.slice(0, -5);
+  const parts = base.split('-');
+  if (parts.length < 4) return null;
+  const dayStr = parts[0];
+  const timeStr = parts[1];
+  if (!/^\d{1,2}$/.test(dayStr)) return null;
+  if (!/^\d{6}$/.test(timeStr)) return null;
+  return {
+    filename: fname,
+    day: parseInt(dayStr, 10),
+    timeHH: timeStr.slice(0, 2),
+    timeMM: timeStr.slice(2, 4),
+    pointId: parts[2],
+    login: parts.slice(3).join('-')
+  };
+}
+
+async function fetchHistoryMonthFolder(yearMonth) {
+  const token = getSyncToken();
+  if (!token) throw new Error('Нет токена');
+  const url = `${GITHUB_API}/repos/${GITHUB_REPO}/contents/${HISTORY_DIR}/${yearMonth}`;
+  const res = await fetchWithTimeout(url, {
+    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+    cache: 'no-store'
+  }, 20000);
+  if (res.status === 404) return [];
+  if (res.status === 401) throw new Error('Неверный токен');
+  if (res.status === 403) throw new Error('Лимит GitHub');
+  if (!res.ok) throw new Error('GitHub ответил ' + res.status);
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.filter(f => f && f.type === 'file' && typeof f.name === 'string' && f.name.endsWith('.json'));
+}
+
+async function fetchAndCacheMonth(yearMonth) {
+  const cached = _historyCache[yearMonth];
+  if (cached && cached.fetchedAt && (Date.now() - cached.fetchedAt) < HISTORY_FETCH_COOLDOWN_MS) {
+    return cached.files || [];
+  }
+  const files = await fetchHistoryMonthFolder(yearMonth);
+  const parsed = [];
+  for (const f of files) {
+    const p = parseHistoryFilename(f.name);
+    if (!p) continue;
+    parsed.push({
+      filename: p.filename,
+      day: p.day,
+      timeHH: p.timeHH,
+      timeMM: p.timeMM,
+      pointId: p.pointId,
+      login: p.login,
+      sha: f.sha || '',
+      size: typeof f.size === 'number' ? f.size : 0
+    });
+  }
+  _historyCache[yearMonth] = { fetchedAt: Date.now(), files: parsed };
+  saveHistoryCache();
+  return parsed;
+}
+
+async function syncHistoryForCurrentMonth() {
+  if (!_calendarMonth) return;
+  if (!getSyncToken()) {
+    renderCalendar();
+    return;
+  }
+  updateSyncIndicator('syncing');
+  try {
+    await fetchAndCacheMonth(_calendarMonth);
+    renderCalendar();
+    updateSyncIndicator('');
+  } catch (e) {
+    console.warn('syncHistoryForCurrentMonth:', e);
+    renderCalendar();
+    updateSyncIndicator('error');
+  }
+}
+
+function renderCalendar() {
+  const grid = $('histGrid');
+  const label = $('histMonthLabel');
+  const emptyBlock = $('historyEmpty');
+  const wrap = $('historyCalendarWrap');
+  if (!grid || !label) return;
+  if (!_calendarMonth) {
+    _calendarMonth = getMonthKeyFromDate(new Date());
+  }
+  label.textContent = formatMonthLabel(_calendarMonth);
+
+  const parts = _calendarMonth.split('-');
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  if (!isFinite(y) || !isFinite(m)) return;
+  const firstDay = new Date(y, m, 1);
+  let offset = firstDay.getDay();
+  if (offset === 0) offset = 7;
+  offset -= 1;
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+  const cache = _historyCache[_calendarMonth] || { files: [] };
+  const files = cache.files || [];
+
+  const byDay = {};
+  for (const f of files) {
+    if (_calendarFilter === 'me') {
+      const myLogin = _profile && _profile.login ? _profile.login : '';
+      if (!myLogin) continue;
+      if (f.login !== myLogin) continue;
+    }
+    if (!byDay[f.day]) byDay[f.day] = 0;
+    byDay[f.day]++;
+  }
+  const totalChecks = Object.keys(byDay).reduce((s, k) => s + byDay[k], 0);
+
+  if (wrap) wrap.style.display = '';
+  if (emptyBlock) emptyBlock.style.display = (files.length === 0 && cache.fetchedAt) ? 'block' : 'none';
+
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === y && today.getMonth() === m;
+  const todayDay = today.getDate();
+
+  grid.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < offset; i++) {
+    const el = document.createElement('button');
+    el.className = 'hist-day empty';
+    el.type = 'button';
+    frag.appendChild(el);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('button');
+    el.type = 'button';
+    let cls = 'hist-day';
+    if (byDay[d] > 0) cls += ' has';
+    if (isCurrentMonth && d === todayDay) cls += ' today';
+    el.className = cls;
+    el.innerHTML = '<span class="num">' + d + '</span><span class="dot"></span>';
+    el.dataset.day = String(d);
+    el.addEventListener('click', () => openDayModal(d));
+    frag.appendChild(el);
+  }
+  const totalCells = offset + daysInMonth;
+  const rem = (7 - (totalCells % 7)) % 7;
+  for (let i = 0; i < rem; i++) {
+    const el = document.createElement('button');
+    el.className = 'hist-day empty';
+    el.type = 'button';
+    frag.appendChild(el);
+  }
+  grid.appendChild(frag);
+}
+
+function shiftCalendarMonth(delta) {
+  if (!_calendarMonth) _calendarMonth = getMonthKeyFromDate(new Date());
+  const parts = _calendarMonth.split('-');
+  let y = parseInt(parts[0], 10);
+  let m = parseInt(parts[1], 10) - 1;
+  m += delta;
+  while (m < 0) { m += 12; y--; }
+  while (m > 11) { m -= 12; y++; }
+  _calendarMonth = `${y}-${String(m+1).padStart(2,'0')}`;
+  renderCalendar();
+  syncHistoryForCurrentMonth();
+}
+
+function openDayModal(day) {
+  // Заглушка. Полная модалка дня — в Сессии 2c.
+  const cache = _historyCache[_calendarMonth] || { files: [] };
+  const files = (cache.files || []).filter(f => {
+    if (f.day !== day) return false;
+    if (_calendarFilter === 'me') {
+      const myLogin = _profile && _profile.login ? _profile.login : '';
+      if (!myLogin) return false;
+      if (f.login !== myLogin) return false;
+    }
+    return true;
+  });
+  const [yStr, mStr] = _calendarMonth.split('-');
+  const label = `${day} ${MONTH_NAMES_RU[parseInt(mStr,10)-1].toLowerCase()} ${yStr}`;
+  if (!files.length) {
+    showToast(label + ' — проверок не было');
+    return;
+  }
+  showToast(label + ' — проверок: ' + files.length + ' (детали скоро)');
 }
 
 /* ═══════════════════════════════════════════
@@ -7314,6 +7606,22 @@ function bindUI() {
   const exportBtn = $('exportBtn'); if (exportBtn) exportBtn.onclick = exportExcel;
   const finishBtn = $('finishCheckBtn'); if (finishBtn) finishBtn.onclick = openReport;
 
+  /* === v9.9.2: календарь истории === */
+  const histPrev = $('histPrevMonth');
+  if (histPrev) histPrev.onclick = () => shiftCalendarMonth(-1);
+  const histNext = $('histNextMonth');
+  if (histNext) histNext.onclick = () => shiftCalendarMonth(1);
+  const histFilter = $('histFilter');
+  if (histFilter) {
+    histFilter.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        _calendarFilter = btn.dataset.filter === 'me' ? 'me' : 'all';
+        histFilter.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+        renderCalendar();
+      });
+    });
+  }
+
   // Клик по кнопке «Отправить в историю» внутри отчёта (делегирование)
   document.addEventListener('click', e => {
     const btn = e.target.closest && e.target.closest('#sendReportBtn');
@@ -7965,6 +8273,14 @@ function init() {
   if (_profile && _profile.token) {
     setTimeout(() => { pullPointsSilently(); }, 1500);
   }
+
+  /* === v9.9.2: календарь истории === */
+  _historyCache = loadHistoryCache();
+  _calendarMonth = getMonthKeyFromDate(new Date());
+  renderCalendar();
+  if (_profile && _profile.token) {
+    setTimeout(() => { syncHistoryForCurrentMonth(); }, 2500);
+  }
   window.addEventListener('storage', e => {
     if (e.key === SESSION_KEY && !isRestoring) {
       const data = loadSession();
@@ -7988,7 +8304,7 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.9.1 · profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· queue:', _historyQueue.length, '· catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.9.2 · profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
 }
 
 /* ═══════════════════════════════════════════
