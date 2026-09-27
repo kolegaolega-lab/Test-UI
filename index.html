@@ -1598,7 +1598,7 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
       </div>
     </div>
     <div class="modal-footer">
-      <button id="pointManagerAddBtn" class="primary block" style="margin-bottom:8px">＋ Добавить точку</button>
+      <button id="pointManagerAddBtn" class="primary block" style="display:none;margin-bottom:8px">＋ Добавить точку</button>
       <button id="pointManagerCloseBtn" class="secondary block">Закрыть</button>
     </div>
   </div>
@@ -1854,6 +1854,7 @@ let _isOwner = false;
 let _currentToast = null;
 let _catalogSelectMode = false;
 let _catalogSelected = new Set();
+let _catalogReadOnly = false;
 let _ignoredSelectMode = false;
 let _ignoredSelected = new Set();
 let _aliasTargetFor = null;
@@ -4423,7 +4424,7 @@ function renderPointsManagerList() {
   if (!box) return;
   box.innerHTML = '';
   if (!_points.length) {
-    box.innerHTML = '<div class="pt-empty"><b>Список пуст</b>Добавьте первую точку — кнопкой ниже.</div>';
+    box.innerHTML = '<div class="pt-empty"><b>Список пуст</b>' + (_isOwner ? 'Добавьте первую точку — кнопкой ниже.' : 'Владелец ещё не добавил точки.') + '</div>';
     return;
   }
   _points.slice().sort((a, b) => naturalCompare(a.num, b.num)).forEach(p => {
@@ -4436,28 +4437,33 @@ function renderPointsManagerList() {
         '<span class="pt-num">' + escapeHtml(p.num) + '</span>' +
         (addr ? '<span class="pt-name">' + escapeHtml(addr) + '</span>' : '') +
       '</span>';
-    const del = document.createElement('button');
-    del.className = 'pt-del';
-    del.type = 'button';
-    del.textContent = '✕';
-    del.setAttribute('aria-label', 'Удалить');
-    del.onclick = () => {
-      if (!confirm('Удалить точку ' + p.num + '?')) return;
-      removePoint(p.id);
-      renderPointsManagerList();
-      updateHeaderPoint();
-    };
-    row.appendChild(del);
+    if (_isOwner) {
+      const del = document.createElement('button');
+      del.className = 'pt-del';
+      del.type = 'button';
+      del.textContent = '✕';
+      del.setAttribute('aria-label', 'Удалить');
+      del.onclick = () => {
+        if (!confirm('Удалить точку ' + p.num + '?')) return;
+        removePoint(p.id);
+        renderPointsManagerList();
+        updateHeaderPoint();
+      };
+      row.appendChild(del);
+    }
     box.appendChild(row);
   });
 }
 function openPointsManager() {
   const form = $('pointAddForm');
   if (form) form.style.display = 'none';
+  const addBtn = $('pointManagerAddBtn');
+  if (addBtn) addBtn.style.display = _isOwner ? 'inline-flex' : 'none';
   renderPointsManagerList();
   openModal('pointsManagerModal');
 }
 function showPointAddForm() {
+  if (!_isOwner) return;
   const form = $('pointAddForm');
   if (!form) return;
   form.style.display = 'block';
@@ -5321,6 +5327,14 @@ function updateCatalogSelectUI() {
   const modeBtn = $('catalogSelectModeBtn');
   const toIgnoredBtn = $('catalogToIgnoredBtn');
   const countEl = $('catalogSelectedCount');
+  if (_catalogReadOnly) {
+    if (bar) bar.style.display = 'none';
+    if (addBlock) addBlock.style.display = 'none';
+    if (normalActions) normalActions.style.display = 'none';
+    if (selectActions) selectActions.style.display = 'none';
+    if (modeBtn) modeBtn.style.display = 'none';
+    return;
+  }
   if (bar) bar.style.display = _catalogSelectMode ? 'flex' : 'none';
   if (addBlock) addBlock.style.display = _catalogSelectMode ? 'none' : 'block';
   if (normalActions) normalActions.style.display = _catalogSelectMode ? 'none' : 'block';
@@ -5372,7 +5386,7 @@ function renderCatalogList() {
     nameInput.type = 'text'; nameInput.className = 'pill text';
     nameInput.value = p.name; nameInput.maxLength = 100;
     nameInput.placeholder = 'Название';
-    nameInput.readOnly = _catalogSelectMode;
+    nameInput.readOnly = _catalogSelectMode || _catalogReadOnly;
     nameInput.onchange = () => {
       if (_catalogSelectMode) return;
       const oldName = PRODUCTS[p._idx].name;
@@ -5398,7 +5412,7 @@ function renderCatalogList() {
     hoursInput.type = 'text'; hoursInput.className = 'pill center';
     hoursInput.inputMode = 'numeric'; hoursInput.pattern = '[0-9]*';
     hoursInput.value = String(p.shelfLife); hoursInput.placeholder = '0'; hoursInput.maxLength = 3;
-    hoursInput.readOnly = _catalogSelectMode;
+    hoursInput.readOnly = _catalogSelectMode || _catalogReadOnly;
     hoursWrap.appendChild(hoursInput);
     const hoursUnit = document.createElement('span'); hoursUnit.className = 'unit'; hoursUnit.textContent = 'ч';
     hoursWrap.appendChild(hoursUnit);
@@ -5428,7 +5442,7 @@ function renderCatalogList() {
     daysInput.type = 'text'; daysInput.className = 'pill center';
     daysInput.inputMode = 'decimal';
     daysInput.value = formatDays(p.shelfLife); daysInput.placeholder = '—'; daysInput.maxLength = 4;
-    daysInput.readOnly = _catalogSelectMode;
+    daysInput.readOnly = _catalogSelectMode || _catalogReadOnly;
     daysWrap.appendChild(daysInput);
     const daysUnit = document.createElement('span'); daysUnit.className = 'unit'; daysUnit.textContent = 'сут';
     daysWrap.appendChild(daysUnit);
@@ -5462,10 +5476,10 @@ function renderCatalogList() {
     catBtn.className = 'cat-cycle' + (p.category ? ' set' : '');
     catBtn.textContent = p.category ? CATEGORY_EMOJI[p.category] : '—';
     catBtn.title = p.category ? CATEGORY_LABELS[p.category] : 'Без категории';
-    catBtn.disabled = _catalogSelectMode;
+    catBtn.disabled = _catalogSelectMode || _catalogReadOnly;
     catBtn.addEventListener('click', e => {
       e.stopPropagation();
-      if (_catalogSelectMode) return;
+      if (_catalogSelectMode || _catalogReadOnly) return;
       const cur = PRODUCTS[p._idx].category;
       const curIdx = CATEGORY_CYCLE.indexOf(cur);
       const next = CATEGORY_CYCLE[(curIdx + 1) % CATEGORY_CYCLE.length];
@@ -5478,7 +5492,7 @@ function renderCatalogList() {
     });
     row.appendChild(catBtn);
 
-    if (!_catalogSelectMode) {
+    if (!_catalogSelectMode && !_catalogReadOnly) {
       const delBtn = document.createElement('button');
       delBtn.className = 'del-btn';
       delBtn.type = 'button';
@@ -5837,6 +5851,10 @@ function closeAliasTargetModal() {
 function openPricesModal() {
   const s = $('pricesSearch'); if (s) s.value = '';
   const st = $('pricesStatus'); if (st) { st.className = 'status'; st.textContent = ''; }
+  const addBtn = $('pricesAddBtn');
+  if (addBtn) addBtn.style.display = _isOwner ? 'inline-flex' : 'none';
+  const importBtn = $('pricesImportBtn');
+  if (importBtn) importBtn.style.display = _isOwner ? 'inline-flex' : 'none';
   renderPricesList();
   openModal('pricesModal');
 }
@@ -5867,12 +5885,18 @@ function renderPricesList() {
     const chev = document.createElement('span');
     chev.className = 'pchev'; chev.textContent = '›';
     row.appendChild(nameEl); row.appendChild(valEl); row.appendChild(chev);
-    row.onclick = () => openPriceEdit(item.name, item.price);
+    if (_isOwner) {
+      row.onclick = () => openPriceEdit(item.name, item.price);
+    } else {
+      row.style.cursor = 'default';
+      chev.style.display = 'none';
+    }
     frag.appendChild(row);
   });
   list.appendChild(frag);
 }
 function openPriceEdit(name, currentPrice) {
+  if (!_isOwner) return;
   _priceEditOriginal = name;
   const title = $('priceEditTitle');
   const subtitle = $('priceEditSubtitle');
@@ -8425,6 +8449,7 @@ function bindMoreRows() {
         const cs = $('catalogStatus'); if (cs) { cs.className = 'status'; cs.textContent = ''; }
         _catalogSelectMode = false;
         _catalogSelected = new Set();
+        _catalogReadOnly = !_isOwner;
         updateCatalogSelectUI();
         renderCatalogList();
         openModal('catalogModal');
@@ -9020,7 +9045,10 @@ function bindUI() {
     } catch (e) { alert('Ошибка: ' + e.message); }
   };
   const pricesImportBtn = $('pricesImportBtn');
-  if (pricesImportBtn) pricesImportBtn.onclick = () => { const i = $('pricesImportFile'); if (i) i.click(); };
+  if (pricesImportBtn) pricesImportBtn.onclick = () => {
+    if (!_isOwner) return;
+    const i = $('pricesImportFile'); if (i) i.click();
+  };
   const pricesImportFile = $('pricesImportFile');
   if (pricesImportFile) pricesImportFile.onchange = async e => {
     const f = e.target.files && e.target.files[0];
