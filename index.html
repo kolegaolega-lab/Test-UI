@@ -929,6 +929,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
         <button type="button" class="hist-nav-btn" id="histPrevMonth" aria-label="Предыдущий месяц">‹</button>
         <div class="hist-cal-month" id="histMonthLabel">—</div>
         <button type="button" class="hist-nav-btn" id="histNextMonth" aria-label="Следующий месяц">›</button>
+        <button type="button" class="hist-nav-btn" id="histRefreshBtn" aria-label="Обновить" style="margin-left:6px;font-size:16px">↻</button>
       </div>
       <div class="hist-filter" id="histFilter">
         <button type="button" data-filter="all" class="active">Все аудиторы</button>
@@ -967,7 +968,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.9.6 · профиль · график · детали</div>
+  <div class="hint version">French Bakery Аудит · v9.9.8 · профиль · график · детали</div>
 
 </main>
 
@@ -1409,7 +1410,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.9.6';
+const APP_VERSION = 'v9.9.8';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -7971,6 +7972,28 @@ function bindUI() {
   if (histPrev) histPrev.onclick = () => shiftCalendarMonth(-1);
   const histNext = $('histNextMonth');
   if (histNext) histNext.onclick = () => shiftCalendarMonth(1);
+  const histRefresh = $('histRefreshBtn');
+  if (histRefresh) histRefresh.onclick = async () => {
+    if (!getSyncToken()) { showToast('Нет токена'); return; }
+    histRefresh.classList.add('busy');
+    // Принудительно сбрасываем кэш метаданных текущего месяца
+    if (_historyCache[_calendarMonth]) {
+      delete _historyCache[_calendarMonth];
+      saveHistoryCache();
+    }
+    try {
+      updateSyncIndicator('syncing');
+      await fetchAndCacheMonth(_calendarMonth);
+      renderCalendar();
+      updateSyncIndicator('');
+      showToast('Обновлено');
+    } catch (e) {
+      updateSyncIndicator('error');
+      showToast('Не удалось обновить: ' + (e.message || ''));
+    } finally {
+      histRefresh.classList.remove('busy');
+    }
+  };
   const histFilter = $('histFilter');
   if (histFilter) {
     histFilter.querySelectorAll('button').forEach(btn => {
@@ -8665,6 +8688,21 @@ function init() {
     if (document.visibilityState === 'hidden') {
       if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
       saveSession();
+    } else if (document.visibilityState === 'visible') {
+      // Тихая синхронизация истории при возврате в приложение
+      if (_profile && _profile.token && _calendarMonth) {
+        const lastFetch = _historyCache[_calendarMonth] && _historyCache[_calendarMonth].fetchedAt;
+        const age = lastFetch ? (Date.now() - lastFetch) : Infinity;
+        if (age > 5 * 60 * 1000) {
+          fetchAndCacheMonth(_calendarMonth)
+            .then(() => renderCalendar())
+            .catch(e => console.warn('visibility refresh:', e));
+        }
+      }
+      // Слить очередь оффлайн-пушей
+      if (_historyQueue.length) {
+        setTimeout(() => flushHistoryQueue(), 1500);
+      }
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
