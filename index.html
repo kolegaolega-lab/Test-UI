@@ -500,56 +500,66 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
    v9.9.6 — Модалка дня и детали проверки
    ═══════════════════════════════════════════ */
 #dayModalContent,#checkDetailsContent{display:flex;flex-direction:column;padding:0 !important;height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px) - env(safe-area-inset-top,0px));max-height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px) - env(safe-area-inset-top,0px));overflow:hidden}
-.day-summary{margin:0;padding:14px 16px;background:var(--bg-input);border-bottom:1px solid var(--separator);font-size:12.5px;color:var(--text-secondary);line-height:1.5}
-.day-summary .big{display:block;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
-.day-summary b{color:var(--text);font-weight:600}
-.day-list{padding:0;overflow-y:auto;flex:1}
-.day-check-card{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid var(--separator);background:transparent;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;color:var(--text);font-family:inherit;cursor:pointer;min-height:auto;border-radius:0}
-.day-check-card:last-child{border-bottom:0}
-.day-check-card:active{background:var(--bg-input)}
-.dcc-icon{width:38px;height:38px;border-radius:10px;background:var(--bg-input);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:18px}
-.dcc-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.dcc-num{font-size:14.5px;font-weight:700;line-height:1.2;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.dcc-name{font-size:11.5px;color:var(--text-secondary);line-height:1.3;margin-top:1px}
-.dcc-meta{font-size:11.5px;color:var(--text-secondary);line-height:1.35;margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.dcc-meta .dot-sep{color:var(--text-tertiary)}
-.dcc-meta .warn{color:var(--orange);font-weight:600}
-.dcc-meta .danger{color:var(--red);font-weight:600}
-.dcc-meta .ok{color:var(--green);font-weight:600}
-.dcc-time{font-size:11px;color:var(--text-tertiary);flex:0 0 auto;font-variant-numeric:tabular-nums;padding-top:2px}
-.dcc-you{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--green-soft);color:var(--green);padding:2px 6px;border-radius:99px;flex:0 0 auto}
-.dcc-chev{color:var(--text-tertiary);font-size:16px;font-weight:400;flex:0 0 auto;line-height:1;padding-top:2px}
 
-/* Детали проверки */
-.cd-point{padding:16px 16px 4px}
-.cd-num{font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1.2;margin:0 0 3px;color:var(--text)}
-.cd-addr{font-size:12.5px;color:var(--text-secondary);margin:0;line-height:1.4}
-.cd-meta{padding:12px 16px 16px;font-size:12px;color:var(--text-secondary);display:flex;flex-wrap:wrap;gap:6px 12px;border-bottom:1px solid var(--separator)}
-.cd-meta span{display:inline-flex;align-items:center;gap:4px}
-.cd-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 16px;border-bottom:1px solid var(--separator)}
-.cd-stat{padding:10px 12px;background:var(--bg-input);border-radius:10px}
-.cd-stat .cd-lbl{font-size:10.5px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:4px}
-.cd-stat .cd-val{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1;color:var(--text)}
-.cd-stat .cd-val.green{color:var(--green)}
-.cd-stat .cd-val.orange{color:var(--orange)}
-.cd-stat .cd-val.red{color:var(--red)}
-.cd-section{padding:14px 16px;border-bottom:1px solid var(--separator)}
-.cd-section:last-child{border-bottom:0}
-.cd-sec-title{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin:0 0 10px}
-.cd-cat-row{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px}
-.cd-cat-icon{width:26px;height:26px;border-radius:8px;background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
-.cd-cat-name{flex:1;min-width:0;font-weight:600;color:var(--text)}
-.cd-cat-vals{font-size:12px;color:var(--text-secondary);font-variant-numeric:tabular-nums;flex:0 0 auto;text-align:right}
-.cd-cat-vals b{color:var(--text);font-weight:600}
-.cd-cat-vals .warn{color:var(--orange);font-weight:700}
-.cd-pos-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--separator);font-size:13px}
-.cd-pos-row:last-child{border-bottom:0}
-.cd-pos-name{flex:1;min-width:0;color:var(--text);font-weight:500;word-break:break-word;line-height:1.35}
-.cd-pos-val{color:var(--text-secondary);font-variant-numeric:tabular-nums;flex:0 0 auto;font-size:12.5px;font-weight:600;white-space:nowrap;padding-top:1px}
-.cd-pos-val.warn{color:var(--orange)}
-.cd-pos-val.danger{color:var(--red)}
-.cd-empty{padding:24px 16px;text-align:center;font-size:13px;color:var(--text-tertiary);line-height:1.5}
-.cd-loading{padding:32px 16px;text-align:center;font-size:13px;color:var(--text-secondary);line-height:1.5}
+/* ═══════════════════════════════════════════
+   v9.14.2 — Модалки дня/деталей в стиле «Разделы»
+   ═══════════════════════════════════════════ */
+.sheet-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--bg-card)}
+.sheet-section{background:var(--bg-card);border-bottom:1px solid var(--separator)}
+.sheet-section:last-child{border-bottom:0}
+.sheet-section-header{padding:14px 16px 8px}
+.sheet-section-header h2{font-size:14.5px;font-weight:600;margin:0;letter-spacing:-.2px;color:var(--text)}
+.sheet-section-header .desc{font-size:12.5px;color:var(--text-secondary);margin-top:3px;line-height:1.4}
+.sheet-section-header .desc b{color:var(--text);font-weight:600}
+.sheet-section-body{padding:0 16px 14px}
+
+.sheet-summary{background:var(--bg-input);border-radius:12px;padding:12px;font-size:12.5px;color:var(--text-secondary);line-height:1.5}
+.sheet-summary .big{display:block;font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.sheet-summary b{color:var(--text);font-weight:600}
+
+.sheet-card{background:var(--bg-input);border-radius:12px;padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;border:0;width:100%;text-align:left;color:var(--text);font-family:inherit;min-height:auto}
+.sheet-card:last-child{margin-bottom:0}
+.sheet-card:active{background:var(--bg-elev-2)}
+.sheet-card .sc-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sheet-card .sc-name{font-size:14px;font-weight:600;line-height:1.25;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sheet-card .sc-name .you{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--green);color:#fff;padding:2px 6px;border-radius:99px;flex:0 0 auto}
+.sheet-card .sc-sub{font-size:11.5px;color:var(--text-secondary);line-height:1.35;margin-top:3px}
+.sheet-card .sc-sub .dot-sep{color:var(--text-tertiary)}
+.sheet-card .sc-sub .warn{color:var(--orange);font-weight:600}
+.sheet-card .sc-sub .danger{color:var(--red);font-weight:600}
+.sheet-card .sc-sub .ok{color:var(--green);font-weight:600}
+.sheet-card .sc-time{font-size:11px;color:var(--text-tertiary);flex:0 0 auto;font-variant-numeric:tabular-nums;align-self:flex-start;padding-top:2px}
+
+.sheet-author{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-secondary);padding:4px 0}
+.sheet-author .name{color:var(--text);font-weight:600}
+.sheet-author .dot-sep{color:var(--text-tertiary)}
+
+.sheet-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sheet-stat{background:var(--bg-input);border-radius:12px;padding:12px}
+.sheet-stat .lbl{font-size:10.5px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:4px}
+.sheet-stat .val{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.sheet-stat .val.green{color:var(--green)}
+.sheet-stat .val.orange{color:var(--orange)}
+.sheet-stat .val.red{color:var(--red)}
+
+.sheet-cat-row{display:flex;align-items:center;gap:12px;background:var(--bg-input);border-radius:12px;padding:12px;margin-bottom:8px}
+.sheet-cat-row:last-child{margin-bottom:0}
+.sheet-cat-icon{width:32px;height:32px;border-radius:9px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto}
+.sheet-cat-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.sheet-cat-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.25}
+.sheet-cat-sub{font-size:11.5px;color:var(--text-secondary);line-height:1.3}
+.sheet-cat-sub .warn{color:var(--orange);font-weight:600}
+.sheet-cat-vals{font-size:12.5px;color:var(--text-secondary);font-weight:600;flex:0 0 auto;font-variant-numeric:tabular-nums}
+
+.sheet-pos-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--separator);font-size:13px}
+.sheet-pos-row:last-child{border-bottom:0;padding-bottom:0}
+.sheet-pos-name{flex:1;min-width:0;color:var(--text);font-weight:500;line-height:1.35;word-break:break-word}
+.sheet-pos-val{color:var(--text-secondary);font-variant-numeric:tabular-nums;flex:0 0 auto;font-size:12.5px;font-weight:600;white-space:nowrap;text-align:right;line-height:1.35}
+.sheet-pos-val.warn{color:var(--orange)}
+.sheet-pos-val.danger{color:var(--red)}
+
+.sheet-empty{padding:20px 0;text-align:center;font-size:13px;color:var(--text-tertiary);line-height:1.5}
+.sheet-loading{padding:32px 0;text-align:center;font-size:13px;color:var(--text-secondary);line-height:1.5}
 /* ═══════════════════════════════════════════
    v9.9.0 — Профиль / Точки / Первый запуск
    ═══════════════════════════════════════════ */
@@ -1618,12 +1628,7 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 <div id="dayModal" class="modal bottom-sheet hidden">
   <div class="modal-content" id="dayModalContent">
     <div class="sheet-handle"></div>
-    <div class="modal-header">
-      <h3 id="dayModalTitle">27 сентября 2026</h3>
-      <p class="hint" id="dayModalSubtitle">—</p>
-    </div>
-    <div class="day-summary" id="dayModalSummary" style="display:none"></div>
-    <div class="day-list" id="dayModalList"></div>
+    <div class="sheet-scroll" id="dayModalBody"></div>
     <div class="modal-footer">
       <button id="dayModalCloseBtn" class="secondary block">Закрыть</button>
     </div>
@@ -1634,10 +1639,7 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 <div id="checkDetailsModal" class="modal bottom-sheet hidden">
   <div class="modal-content" id="checkDetailsContent">
     <div class="sheet-handle"></div>
-    <div class="modal-header" style="padding-bottom:4px">
-      <h3 id="cdModalTitle" style="display:none">Проверка</h3>
-    </div>
-    <div class="modal-body" id="cdModalBody" style="padding:0"></div>
+    <div class="sheet-scroll" id="cdModalBody"></div>
     <div class="modal-footer">
       <button id="cdModalCloseBtn" class="secondary block">Закрыть</button>
     </div>
