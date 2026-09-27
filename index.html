@@ -729,7 +729,8 @@ body[data-active-tab="check"] .check-steps{display:block}
 /* ═══════════════════════════════════════════
    v9.12.0 — Bottom-sheet для «Дня» и «Деталей»
    ═══════════════════════════════════════════ */
-.modal.bottom-sheet{align-items:flex-end;padding:0}
+.modal.bottom-sheet{align-items:flex-end;padding:0;height:auto;top:0;bottom:0;min-height:0}
+.modal.bottom-sheet .modal-content{margin-bottom:0 !important}
 .modal.bottom-sheet .modal-content{border-radius:20px 20px 0 0;max-width:640px;width:100%;animation:sheetSlideUp .3s cubic-bezier(.32,.72,0,1)}
 @keyframes sheetSlideUp{from{transform:translateY(100%);opacity:.7}to{transform:translateY(0);opacity:1}}
 .sheet-handle{width:38px;height:5px;border-radius:3px;background:var(--separator-opaque);margin:10px auto 4px;flex:0 0 auto;pointer-events:none}
@@ -758,7 +759,7 @@ body[data-active-tab="check"] .check-steps{display:block}
 
 /* v9.12.1: последняя секция вкладки тянется до таббара */
 main{display:flex;flex-direction:column;min-height:calc(100dvh - var(--header-h));padding-bottom:0}
-.section.section-stretch{flex:1 1 auto;margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;display:flex;flex-direction:column}
+.section.section-stretch{flex:1 1 auto;margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;display:flex;flex-direction:column;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .section.section-stretch > .section-body{flex:1 1 auto}
 .section.section-stretch > .section-header + .section-body{flex:1 1 auto}
 </style>
@@ -1171,7 +1172,7 @@ main{display:flex;flex-direction:column;min-height:calc(100dvh - var(--header-h)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.12.0 · bottom-sheet и аватары</div>
+  <div class="hint version">French Bakery Аудит · v9.12.1 · секции до таббара</div>
 
 </main>
 
@@ -1656,7 +1657,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.12.0';
+const APP_VERSION = 'v9.12.1';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
