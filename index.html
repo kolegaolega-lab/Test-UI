@@ -1792,7 +1792,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.14.1';
+const APP_VERSION = 'v9.14.2';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1920,6 +1920,7 @@ function openModal(id) {
   const el = $(id);
   if (!el) return;
   document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
   document.body.classList.add('modal-open');
   el.classList.remove('hidden');
 }
@@ -1930,6 +1931,7 @@ function closeModal(id) {
   const anyOpen = document.querySelector('.modal:not(.hidden)');
   if (!anyOpen) {
     document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
     document.body.classList.remove('modal-open');
   }
 }
@@ -9267,6 +9269,33 @@ function bindUI() {
 
   /* === v9.14.1: свайп-закрытие bottom-sheet === */
   bindSheetSwipe();
+
+  /* === v9.14.2: блокировка скролла фона под модалками === */
+  bindBodyScrollGuard();
+}
+
+/* ═══════════════════════════════════════════
+   v9.14.2 — Блокировка скролла фона под модалкой
+   Работает через touchmove + preventDefault (без position:fixed,
+   чтобы не ломать раскладку).
+   ═══════════════════════════════════════════ */
+function bindBodyScrollGuard() {
+  let touchStartOnContent = false;
+
+  document.addEventListener('touchstart', (e) => {
+    if (!document.querySelector('.modal:not(.hidden)')) return;
+    const t = e.target;
+    touchStartOnContent = !!(t && t.closest && t.closest('.modal-content'));
+  }, { passive: true, capture: true });
+
+  document.addEventListener('touchmove', (e) => {
+    // Нет открытых модалок — пропускаем
+    if (!document.querySelector('.modal:not(.hidden)')) return;
+    // Тач начался на модалке — внутренний скролл разрешён
+    if (touchStartOnContent) return;
+    // Всё остальное (фон) — блокируем
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false, capture: true });
 }
 
 /* ═══════════════════════════════════════════
