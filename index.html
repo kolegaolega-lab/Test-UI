@@ -717,7 +717,6 @@ body[data-active-tab="check"] .check-steps{display:block}
 .step-hint{font-size:12px;color:var(--text-secondary);line-height:1.4;margin:10px 4px 0;padding:10px 12px;background:var(--bg-input);border-radius:9px;text-align:center}
 .step-hint b{color:var(--text);font-weight:600}
 </style>
-</style>
 </head>
 <body>
 
@@ -1127,7 +1126,7 @@ body[data-active-tab="check"] .check-steps{display:block}
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.11.1 · тихая полировка</div>
+  <div class="hint version">French Bakery Аудит · v9.11.2 · чистка кэша и индикатора</div>
 
 </main>
 
@@ -1172,8 +1171,6 @@ body[data-active-tab="check"] .check-steps{display:block}
     <span class="tb-label">Справочник</span>
   </button>
 </nav>
-
-</main>
 
 <!-- ═══════════════ Модалка: Справочник ═══════════════ -->
 <div id="catalogModal" class="modal hidden">
@@ -1612,7 +1609,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.11.1';
+const APP_VERSION = 'v9.11.2';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -3062,6 +3059,11 @@ function updateHeaderPoint() {
 function updatePointsCount() {
   const el = $('pointsCount'); if (el) el.textContent = String(_points.length);
 }
+function getSyncIndicatorState() {
+  if (typeof _historySyncing !== 'undefined' && _historySyncing) return 'syncing';
+  if (Array.isArray(_historyQueue) && _historyQueue.length) return 'wait';
+  return '';
+}
 function updateHeaderProfile() {
   const el = $('headerProfileLine');
   if (!el) return;
@@ -3069,6 +3071,9 @@ function updateHeaderProfile() {
     el.innerHTML = '<span class="sync-dot"></span> <b>' + escapeHtml(_profile.name) + '</b>';
   } else {
     el.innerHTML = '';
+  }
+  if (typeof updateSyncIndicator === 'function') {
+    updateSyncIndicator(getSyncIndicatorState());
   }
 }
 function updateProfileInfoBlock() {
@@ -3771,6 +3776,14 @@ function shiftCalendarMonth(delta) {
 function historyContentCacheKey(fname) {
   return _calendarMonth + '/' + fname;
 }
+const HISTORY_CONTENT_CACHE_MAX = 100;
+function trimHistoryContentCache() {
+  const keys = Object.keys(_historyContentCache);
+  if (keys.length <= HISTORY_CONTENT_CACHE_MAX) return;
+  keys.sort((a, b) => (_historyContentCache[a].ts || 0) - (_historyContentCache[b].ts || 0));
+  const excess = keys.length - HISTORY_CONTENT_CACHE_MAX;
+  for (let i = 0; i < excess; i++) delete _historyContentCache[keys[i]];
+}
 
 async function fetchHistoryFileContent(fname) {
   const cacheKey = historyContentCacheKey(fname);
@@ -3798,6 +3811,7 @@ async function fetchHistoryFileContent(fname) {
   }
   const data = JSON.parse(decoded);
   _historyContentCache[cacheKey] = { data, ts: Date.now() };
+  trimHistoryContentCache();
   return data;
 }
 
@@ -8922,8 +8936,6 @@ function bindModalBackdrops() {
       else if (!$('pointsManagerModal').classList.contains('hidden')) closeModal('pointsManagerModal');
       else if (!$('checkDetailsModal').classList.contains('hidden')) closeModal('checkDetailsModal');
       else if (!$('dayModal').classList.contains('hidden')) closeModal('dayModal');
-      else if (id === 'dayModal') closeModal('dayModal');
-      else if (id === 'checkDetailsModal') closeModal('checkDetailsModal');
       else if (!$('promptModal').classList.contains('hidden')) closeModal('promptModal');
     }
   });
