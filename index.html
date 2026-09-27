@@ -487,6 +487,60 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
 .hist-empty{padding:24px 16px;text-align:center;font-size:13px;color:var(--text-tertiary);line-height:1.5}
 .hist-empty b{color:var(--text-secondary);font-weight:600;display:block;margin-bottom:4px}
 /* ═══════════════════════════════════════════
+   v9.9.6 — Модалка дня и детали проверки
+   ═══════════════════════════════════════════ */
+#dayModalContent,#checkDetailsContent{display:flex;flex-direction:column;padding:0 !important;height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px) - env(safe-area-inset-top,0px));max-height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px) - env(safe-area-inset-top,0px));overflow:hidden}
+.day-summary{margin:0;padding:14px 16px;background:var(--bg-input);border-bottom:1px solid var(--separator);font-size:12.5px;color:var(--text-secondary);line-height:1.5}
+.day-summary .big{display:block;font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+.day-summary b{color:var(--text);font-weight:600}
+.day-list{padding:0;overflow-y:auto;flex:1}
+.day-check-card{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid var(--separator);background:transparent;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;color:var(--text);font-family:inherit;cursor:pointer;min-height:auto;border-radius:0}
+.day-check-card:last-child{border-bottom:0}
+.day-check-card:active{background:var(--bg-input)}
+.dcc-icon{width:38px;height:38px;border-radius:10px;background:var(--bg-input);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:18px}
+.dcc-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dcc-num{font-size:14.5px;font-weight:700;line-height:1.2;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dcc-name{font-size:11.5px;color:var(--text-secondary);line-height:1.3;margin-top:1px}
+.dcc-meta{font-size:11.5px;color:var(--text-secondary);line-height:1.35;margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.dcc-meta .dot-sep{color:var(--text-tertiary)}
+.dcc-meta .warn{color:var(--orange);font-weight:600}
+.dcc-meta .danger{color:var(--red);font-weight:600}
+.dcc-meta .ok{color:var(--green);font-weight:600}
+.dcc-time{font-size:11px;color:var(--text-tertiary);flex:0 0 auto;font-variant-numeric:tabular-nums;padding-top:2px}
+.dcc-you{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--green-soft);color:var(--green);padding:2px 6px;border-radius:99px;flex:0 0 auto}
+.dcc-chev{color:var(--text-tertiary);font-size:16px;font-weight:400;flex:0 0 auto;line-height:1;padding-top:2px}
+
+/* Детали проверки */
+.cd-point{padding:16px 16px 4px}
+.cd-num{font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1.2;margin:0 0 3px;color:var(--text)}
+.cd-addr{font-size:12.5px;color:var(--text-secondary);margin:0;line-height:1.4}
+.cd-meta{padding:12px 16px 16px;font-size:12px;color:var(--text-secondary);display:flex;flex-wrap:wrap;gap:6px 12px;border-bottom:1px solid var(--separator)}
+.cd-meta span{display:inline-flex;align-items:center;gap:4px}
+.cd-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 16px;border-bottom:1px solid var(--separator)}
+.cd-stat{padding:10px 12px;background:var(--bg-input);border-radius:10px}
+.cd-stat .cd-lbl{font-size:10.5px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:4px}
+.cd-stat .cd-val{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1;color:var(--text)}
+.cd-stat .cd-val.green{color:var(--green)}
+.cd-stat .cd-val.orange{color:var(--orange)}
+.cd-stat .cd-val.red{color:var(--red)}
+.cd-section{padding:14px 16px;border-bottom:1px solid var(--separator)}
+.cd-section:last-child{border-bottom:0}
+.cd-sec-title{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin:0 0 10px}
+.cd-cat-row{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px}
+.cd-cat-icon{width:26px;height:26px;border-radius:8px;background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
+.cd-cat-name{flex:1;min-width:0;font-weight:600;color:var(--text)}
+.cd-cat-vals{font-size:12px;color:var(--text-secondary);font-variant-numeric:tabular-nums;flex:0 0 auto;text-align:right}
+.cd-cat-vals b{color:var(--text);font-weight:600}
+.cd-cat-vals .warn{color:var(--orange);font-weight:700}
+.cd-pos-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--separator);font-size:13px}
+.cd-pos-row:last-child{border-bottom:0}
+.cd-pos-name{flex:1;min-width:0;color:var(--text);font-weight:500;word-break:break-word;line-height:1.35}
+.cd-pos-val{color:var(--text-secondary);font-variant-numeric:tabular-nums;flex:0 0 auto;font-size:12.5px;font-weight:600;white-space:nowrap;padding-top:1px}
+.cd-pos-val.warn{color:var(--orange)}
+.cd-pos-val.danger{color:var(--red)}
+.cd-empty{padding:24px 16px;text-align:center;font-size:13px;color:var(--text-tertiary);line-height:1.5}
+.cd-loading{padding:32px 16px;text-align:center;font-size:13px;color:var(--text-secondary);line-height:1.5}
+/* ═══════════════════════════════════════════
    v9.9.0 — Профиль / Точки / Первый запуск
    ═══════════════════════════════════════════ */
 .point-chip{display:none;align-items:center;gap:5px;background:var(--accent-soft);color:var(--accent);border:0;padding:6px 10px;border-radius:99px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;flex:0 0 auto;margin-left:auto;transition:transform .15s,opacity .15s}
@@ -913,7 +967,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.9.2 · профиль · точки · график</div>
+  <div class="hint version">French Bakery Аудит · v9.9.6 · профиль · график · детали</div>
 
 </main>
 
@@ -1288,6 +1342,34 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 </div>
 
+<!-- ═══════════════ Модалка: День истории ═══════════════ -->
+<div id="dayModal" class="modal hidden">
+  <div class="modal-content" id="dayModalContent">
+    <div class="modal-header">
+      <h3 id="dayModalTitle">27 сентября 2026</h3>
+      <p class="hint" id="dayModalSubtitle">—</p>
+    </div>
+    <div class="day-summary" id="dayModalSummary" style="display:none"></div>
+    <div class="day-list" id="dayModalList"></div>
+    <div class="modal-footer">
+      <button id="dayModalCloseBtn" class="secondary block">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Модалка: Детали проверки ═══════════════ -->
+<div id="checkDetailsModal" class="modal hidden">
+  <div class="modal-content" id="checkDetailsContent">
+    <div class="modal-header" style="padding-bottom:4px">
+      <h3 id="cdModalTitle" style="display:none">Проверка</h3>
+    </div>
+    <div class="modal-body" id="cdModalBody" style="padding:0"></div>
+    <div class="modal-footer">
+      <button id="cdModalCloseBtn" class="secondary block">Закрыть</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ Тост обновления PWA ═══════════════ -->
 <div id="updateBanner" class="toast">Доступно обновление · нажмите, чтобы перезагрузить</div>
 
@@ -1327,7 +1409,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.9.2';
+const APP_VERSION = 'v9.9.6';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1437,6 +1519,7 @@ let _historyQueue = [];
 let _historySyncing = false;
 let _calendarMonth = '';
 let _calendarFilter = 'all';
+let _historyContentCache = {}; // { 'YYYY-MM/filename.json': {data, ts} }
 
 /* ═══════════════════════════════════════════
    БАЗОВЫЕ УТИЛИТЫ
@@ -3313,8 +3396,56 @@ function shiftCalendarMonth(delta) {
   syncHistoryForCurrentMonth();
 }
 
-function openDayModal(day) {
-  // Заглушка. Полная модалка дня — в Сессии 2c.
+function historyContentCacheKey(fname) {
+  return _calendarMonth + '/' + fname;
+}
+
+async function fetchHistoryFileContent(fname) {
+  const cacheKey = historyContentCacheKey(fname);
+  const cached = _historyContentCache[cacheKey];
+  if (cached && (Date.now() - cached.ts) < 30 * 60 * 1000) {
+    return cached.data;
+  }
+  const token = getSyncToken();
+  if (!token) throw new Error('Нет токена');
+  const url = `${GITHUB_API}/repos/${GITHUB_REPO}/contents/${HISTORY_DIR}/${_calendarMonth}/${fname}`;
+  const res = await fetchWithTimeout(url, {
+    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+    cache: 'no-store'
+  }, 20000);
+  if (res.status === 404) throw new Error('Файл не найден');
+  if (res.status === 401) throw new Error('Неверный токен');
+  if (!res.ok) throw new Error('GitHub ответил ' + res.status);
+  const json = await res.json();
+  if (!json || !json.content) throw new Error('Пустой ответ');
+  let decoded = '';
+  try {
+    decoded = decodeURIComponent(escape(atob(String(json.content).replace(/\s/g, ''))));
+  } catch (e) {
+    try { decoded = atob(String(json.content).replace(/\s/g, '')); } catch (e2) { throw new Error('Не удалось распарсить файл'); }
+  }
+  const data = JSON.parse(decoded);
+  _historyContentCache[cacheKey] = { data, ts: Date.now() };
+  return data;
+}
+
+function countCheckProblems(snapshot) {
+  if (!snapshot || !snapshot.categories) return { positions: 0, problems: 0 };
+  let positions = 0;
+  let problems = 0;
+  for (const cat of Object.keys(snapshot.categories)) {
+    const items = snapshot.categories[cat] || [];
+    for (const it of items) {
+      positions++;
+      const exp = (it.expiredOnShelf != null) ? it.expiredOnShelf : 0;
+      const sxp = (it.soldExpired != null) ? it.soldExpired : 0;
+      if (exp > 0 || sxp > 0) problems++;
+    }
+  }
+  return { positions, problems };
+}
+
+async function openDayModal(day) {
   const cache = _historyCache[_calendarMonth] || { files: [] };
   const files = (cache.files || []).filter(f => {
     if (f.day !== day) return false;
@@ -3326,12 +3457,234 @@ function openDayModal(day) {
     return true;
   });
   const [yStr, mStr] = _calendarMonth.split('-');
-  const label = `${day} ${MONTH_NAMES_RU[parseInt(mStr,10)-1].toLowerCase()} ${yStr}`;
+  const monthRu = MONTH_NAMES_RU[parseInt(mStr,10)-1].toLowerCase();
+  const dayTitle = `${day} ${monthRu} ${yStr}`;
+
+  const titleEl = $('dayModalTitle');
+  const subEl = $('dayModalSubtitle');
+  const summaryEl = $('dayModalSummary');
+  const listEl = $('dayModalList');
+  if (titleEl) titleEl.textContent = dayTitle;
+  if (subEl) subEl.textContent = '';
+  if (summaryEl) { summaryEl.style.display = 'none'; summaryEl.innerHTML = ''; }
+  if (listEl) listEl.innerHTML = '<div class="cd-loading">Загружаю проверки…</div>';
+
+  openModal('dayModal');
+
   if (!files.length) {
-    showToast(label + ' — проверок не было');
+    if (subEl) subEl.textContent = 'Проверок не было';
+    if (listEl) listEl.innerHTML = '<div class="cd-empty">Никто из аудиторов не отмечался в этот день.</div>';
     return;
   }
-  showToast(label + ' — проверок: ' + files.length + ' (детали скоро)');
+
+  // Сортируем по времени (свежие сверху)
+  const sorted = files.slice().sort((a, b) => {
+    const t1 = a.timeHH + a.timeMM;
+    const t2 = b.timeHH + b.timeMM;
+    return t2.localeCompare(t1);
+  });
+
+  const contents = [];
+  for (const f of sorted) {
+    try {
+      const data = await fetchHistoryFileContent(f.filename);
+      contents.push({ file: f, data });
+    } catch (e) {
+      contents.push({ file: f, data: null, error: e.message });
+    }
+  }
+
+  // Итоги
+  let totalPositions = 0;
+  let totalProblems = 0;
+  const authors = new Set();
+  const points = new Set();
+  for (const c of contents) {
+    if (!c.data) continue;
+    const { positions, problems } = countCheckProblems(c.data);
+    totalPositions += positions;
+    totalProblems += problems;
+    if (c.data.authorName) authors.add(c.data.authorName);
+    if (c.data.pointNum) points.add(c.data.pointNum);
+  }
+
+  const authorList = [...authors].join(', ');
+  const pointsCount = points.size;
+  if (subEl) {
+    subEl.textContent = `${contents.length} ${pluralize(contents.length, 'проверка', 'проверки', 'проверок')} · ${pointsCount} ${pluralize(pointsCount, 'точка', 'точки', 'точек')}`;
+  }
+  if (summaryEl) {
+    summaryEl.style.display = 'block';
+    let summ = '';
+    if (totalProblems === 0) {
+      summ = `<span class="big">${totalPositions} позиций · всё свежее</span>`;
+    } else {
+      summ = `<span class="big">${totalPositions} позиций · ${totalProblems} ${pluralize(totalProblems, 'проблема', 'проблемы', 'проблем')}</span>`;
+    }
+    summ += `Проверили: <b>${escapeHtml(authorList || '—')}</b>`;
+    summaryEl.innerHTML = summ;
+  }
+
+  if (listEl) {
+    listEl.innerHTML = '';
+    const myLogin = _profile && _profile.login ? _profile.login : '';
+    for (const c of contents) {
+      const f = c.file;
+      const data = c.data;
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'day-check-card';
+      let numText = '';
+      let nameText = '';
+      let metaText = '';
+      let timeText = f.timeHH + ':' + f.timeMM;
+      let isMine = false;
+      if (data) {
+        numText = data.pointNum || '№—';
+        nameText = data.pointName || data.pointAddress || '';
+        const { positions, problems } = countCheckProblems(data);
+        metaText = `${data.authorName || f.login} <span class="dot-sep">·</span> ${positions} позиций`;
+        if (problems > 0) metaText += ` <span class="dot-sep">·</span> <span class="danger">${problems} ${pluralize(problems, 'проблема', 'проблемы', 'проблем')}</span>`;
+        else metaText += ` <span class="dot-sep">·</span> <span class="ok">без проблем</span>`;
+        isMine = (myLogin && f.login === myLogin) || false;
+      } else {
+        numText = f.pointId || '№—';
+        metaText = `${f.login} <span class="dot-sep">·</span> <span class="warn">не удалось загрузить</span>`;
+      }
+      card.innerHTML =
+        '<div class="dcc-icon">📍</div>' +
+        '<div class="dcc-body">' +
+          '<div class="dcc-num">' + escapeHtml(numText) + (isMine ? ' <span class="dcc-you">Вы</span>' : '') + '</div>' +
+          (nameText ? '<div class="dcc-name">' + escapeHtml(nameText) + '</div>' : '') +
+          '<div class="dcc-meta">' + metaText + '</div>' +
+        '</div>' +
+        '<div class="dcc-time">' + escapeHtml(timeText) + '</div>' +
+        '<div class="dcc-chev">›</div>';
+      if (data) {
+        card.addEventListener('click', () => {
+          closeModal('dayModal');
+          setTimeout(() => openCheckDetails(data), 200);
+        });
+      }
+      listEl.appendChild(card);
+    }
+  }
+}
+
+function openCheckDetails(snapshot) {
+  if (!snapshot) return;
+  const body = $('cdModalBody');
+  const titleEl = $('cdModalTitle');
+  if (titleEl) titleEl.style.display = 'none';
+  if (!body) return;
+  body.innerHTML = '';
+
+  const created = snapshot.createdAt ? new Date(snapshot.createdAt) : null;
+  const timeLabel = created && !isNaN(created.getTime())
+    ? `${String(created.getHours()).padStart(2,'0')}:${String(created.getMinutes()).padStart(2,'0')}`
+    : '';
+
+  const { positions, problems } = countCheckProblems(snapshot);
+
+  // Заголовок с точкой
+  const pointDiv = document.createElement('div');
+  pointDiv.className = 'cd-point';
+  pointDiv.innerHTML =
+    '<p class="cd-num">' + escapeHtml(snapshot.pointNum || '№—') + (snapshot.pointName ? ' · ' + escapeHtml(snapshot.pointName) : '') + '</p>' +
+    (snapshot.pointAddress ? '<p class="cd-addr">' + escapeHtml(snapshot.pointAddress) + '</p>' : '');
+  body.appendChild(pointDiv);
+
+  // Мета: автор + время
+  const metaDiv = document.createElement('div');
+  metaDiv.className = 'cd-meta';
+  metaDiv.innerHTML =
+    '<span>👤 ' + escapeHtml(snapshot.authorName || snapshot.authorLogin || '—') + '</span>' +
+    (timeLabel ? '<span>🕐 ' + timeLabel + '</span>' : '') +
+    (snapshot.date ? '<span>📅 ' + escapeHtml(snapshot.date) + '</span>' : '');
+  body.appendChild(metaDiv);
+
+  // 2 больших числа
+  const statsDiv = document.createElement('div');
+  statsDiv.className = 'cd-stats';
+  const probsClass = problems === 0 ? 'green' : (problems >= 3 ? 'red' : 'orange');
+  statsDiv.innerHTML =
+    '<div class="cd-stat">' +
+      '<div class="cd-lbl">Позиций</div>' +
+      '<div class="cd-val">' + positions + '</div>' +
+    '</div>' +
+    '<div class="cd-stat">' +
+      '<div class="cd-lbl">Проблем</div>' +
+      '<div class="cd-val ' + probsClass + '">' + problems + '</div>' +
+    '</div>';
+  body.appendChild(statsDiv);
+
+  // Разбивка по категориям
+  const catsOrder = ['desserts', 'lunches', 'pastry'];
+  const catsWithData = catsOrder.filter(c => snapshot.categories && snapshot.categories[c] && snapshot.categories[c].length);
+  if (catsWithData.length) {
+    const secCat = document.createElement('div');
+    secCat.className = 'cd-section';
+    secCat.innerHTML = '<p class="cd-sec-title">По категориям</p>';
+    for (const cat of catsWithData) {
+      const items = snapshot.categories[cat] || [];
+      let catProbs = 0;
+      for (const it of items) {
+        const exp = it.expiredOnShelf != null ? it.expiredOnShelf : 0;
+        const sxp = it.soldExpired != null ? it.soldExpired : 0;
+        if (exp > 0 || sxp > 0) catProbs++;
+      }
+      const row = document.createElement('div');
+      row.className = 'cd-cat-row';
+      const probsHtml = catProbs > 0
+        ? ' <span class="warn">· ' + catProbs + ' ' + pluralize(catProbs, 'проблема', 'проблемы', 'проблем') + '</span>'
+        : '';
+      row.innerHTML =
+        '<span class="cd-cat-icon">' + (CATEGORY_EMOJI[cat] || '—') + '</span>' +
+        '<span class="cd-cat-name">' + (CATEGORY_LABELS[cat] || cat) + '</span>' +
+        '<span class="cd-cat-vals"><b>' + items.length + '</b> ' + pluralize(items.length, 'позиция', 'позиции', 'позиций') + probsHtml + '</span>';
+      secCat.appendChild(row);
+    }
+    body.appendChild(secCat);
+  }
+
+  // Проблемные позиции
+  if (problems > 0) {
+    const secProbs = document.createElement('div');
+    secProbs.className = 'cd-section';
+    secProbs.innerHTML = '<p class="cd-sec-title">Проблемные позиции</p>';
+    const problemItems = [];
+    for (const cat of catsOrder) {
+      const items = (snapshot.categories && snapshot.categories[cat]) || [];
+      for (const it of items) {
+        const exp = it.expiredOnShelf != null ? it.expiredOnShelf : 0;
+        const sxp = it.soldExpired != null ? it.soldExpired : 0;
+        if (exp > 0 || sxp > 0) {
+          problemItems.push({ cat, name: it.name, exp, sxp });
+        }
+      }
+    }
+    problemItems.sort((a, b) => (b.sxp + b.exp) - (a.sxp + a.exp));
+    for (const p of problemItems) {
+      const row = document.createElement('div');
+      row.className = 'cd-pos-row';
+      const parts = [];
+      if (p.sxp > 0) parts.push('продано просрочкой: ' + p.sxp);
+      if (p.exp > 0) parts.push('просрочено на витрине: ' + p.exp);
+      const valCls = p.sxp > 0 ? 'danger' : 'warn';
+      row.innerHTML =
+        '<span class="cd-pos-name">' + escapeHtml(p.name) + '</span>' +
+        '<span class="cd-pos-val ' + valCls + '">' + escapeHtml(parts.join(' · ')) + '</span>';
+      secProbs.appendChild(row);
+    }
+    body.appendChild(secProbs);
+  } else {
+    const secProbs = document.createElement('div');
+    secProbs.className = 'cd-section';
+    secProbs.innerHTML = '<p class="cd-sec-title">Проблемные позиции</p><div class="cd-empty">Все позиции свежие. Отлично!</div>';
+    body.appendChild(secProbs);
+  }
+
+  openModal('checkDetailsModal');
 }
 
 /* ═══════════════════════════════════════════
@@ -7609,6 +7962,11 @@ function bindUI() {
   const finishBtn = $('finishCheckBtn'); if (finishBtn) finishBtn.onclick = openReport;
 
   /* === v9.9.2: календарь истории === */
+  const dayModalClose = $('dayModalCloseBtn');
+  if (dayModalClose) dayModalClose.onclick = () => closeModal('dayModal');
+  const cdModalClose = $('cdModalCloseBtn');
+  if (cdModalClose) cdModalClose.onclick = () => closeModal('checkDetailsModal');
+
   const histPrev = $('histPrevMonth');
   if (histPrev) histPrev.onclick = () => shiftCalendarMonth(-1);
   const histNext = $('histNextMonth');
@@ -8095,7 +8453,7 @@ function setRecognizeMode(mode) {
    BIND MODAL BACKDROPS
    ═══════════════════════════════════════════ */
 function bindModalBackdrops() {
-  ['catalogModal', 'unknownModal', 'ignoredModal', 'aliasesModal', 'aliasTargetModal', 'reportModal', 'noCategoryModal', 'pricesModal', 'priceEditModal', 'compareModal', 'firstRunModal', 'pointPickerModal', 'pointsManagerModal'].forEach(id => {
+  ['catalogModal', 'unknownModal', 'ignoredModal', 'aliasesModal', 'aliasTargetModal', 'reportModal', 'noCategoryModal', 'pricesModal', 'priceEditModal', 'compareModal', 'firstRunModal', 'pointPickerModal', 'pointsManagerModal', 'dayModal', 'checkDetailsModal'].forEach(id => {
     const m = $(id); if (!m) return;
     m.addEventListener('click', e => {
       if (e.target !== m) return;
@@ -8143,6 +8501,10 @@ function bindModalBackdrops() {
       else if (!$('compareModal').classList.contains('hidden')) closeCompareModal();
       else if (!$('pointPickerModal').classList.contains('hidden')) closeModal('pointPickerModal');
       else if (!$('pointsManagerModal').classList.contains('hidden')) closeModal('pointsManagerModal');
+      else if (!$('checkDetailsModal').classList.contains('hidden')) closeModal('checkDetailsModal');
+      else if (!$('dayModal').classList.contains('hidden')) closeModal('dayModal');
+      else if (id === 'dayModal') closeModal('dayModal');
+      else if (id === 'checkDetailsModal') closeModal('checkDetailsModal');
       else if (!$('promptModal').classList.contains('hidden')) closeModal('promptModal');
     }
   });
@@ -8306,7 +8668,7 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.9.2 · profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.9.6 · profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
 }
 
 /* ═══════════════════════════════════════════
