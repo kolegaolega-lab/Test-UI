@@ -272,6 +272,7 @@ details.settings .content{margin-top:12px;display:flex;flex-direction:column;gap
 @keyframes iosCheckPop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
 .checkbox.checked::after{content:'';width:6px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-2px)}
 .row-cat{display:grid;gap:8px;align-items:center;padding:6px 0}
+.row-cat.col-3{grid-template-columns:1fr 56px 66px}
 .row-cat.col-4{grid-template-columns:1fr 56px 66px 40px 38px}
 .row-cat.col-5{grid-template-columns:24px 1fr 56px 66px 40px}
 .row-ign{display:grid;grid-template-columns:1fr 38px;gap:8px;align-items:center;padding:6px 0}
@@ -327,6 +328,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
 .alias-target-row:hover{background:var(--bg-elev-2)}
 @media (max-width:420px){
   .cat-row{grid-template-columns:1fr 58px 66px 34px;gap:6px}
+  .row-cat.col-3{grid-template-columns:1fr 48px 56px;gap:6px}
   .row-cat.col-4{grid-template-columns:1fr 48px 56px 34px 34px;gap:6px}
   .row-cat.col-5{grid-template-columns:24px 1fr 48px 56px 34px;gap:6px}
   .row-unk{grid-template-columns:24px 1fr 54px 62px;gap:6px}
@@ -770,10 +772,11 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .list-row .sq{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
 .list-row .sq svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
 
-/* v9.14.0: справочник только для чтения — серые поля */
+/* v9.14.0: справочник только для чтения — обычные поля, но без редактирования */
 .row-cat input.pill[readonly],
-.row-cat input.pill:disabled{color:var(--text-secondary);background:var(--bg-input);border-color:var(--separator);opacity:1;cursor:default}
-.cat-cycle:disabled{opacity:.55;cursor:default}
+.row-cat input.pill:disabled{color:var(--text-secondary);cursor:default}
+.row-cat input.pill[readonly]:focus,
+.row-cat input.pill:disabled:focus{box-shadow:none;border-color:var(--separator-opaque);background:var(--bg-input)}
 
 /* v9.14.0: если последняя строка скрыта — у предыдущей убираем разделитель */
 .section-body > .list-row[style*="display:none"]:last-child + .list-row,
@@ -5424,7 +5427,11 @@ function renderCatalogList() {
   filtered.forEach(p => {
     const isSel = _catalogSelected.has(normalizeName(p.name));
     const row = document.createElement('div');
-    row.className = 'row-cat ' + (_catalogSelectMode ? 'col-5' : 'col-4');
+    let rowCls;
+    if (_catalogSelectMode) rowCls = 'col-5';
+    else if (_catalogReadOnly) rowCls = 'col-3';
+    else rowCls = 'col-4';
+    row.className = 'row-cat ' + rowCls;
     if (_catalogSelectMode && isSel) row.classList.add('selected');
 
     if (_catalogSelectMode) {
@@ -5523,26 +5530,28 @@ function renderCatalogList() {
     });
     row.appendChild(daysWrap);
 
-    const catBtn = document.createElement('button');
-    catBtn.type = 'button';
-    catBtn.className = 'cat-cycle' + (p.category ? ' set' : '');
-    catBtn.textContent = p.category ? CATEGORY_EMOJI[p.category] : '—';
-    catBtn.title = p.category ? CATEGORY_LABELS[p.category] : 'Без категории';
-    catBtn.disabled = _catalogSelectMode || _catalogReadOnly;
-    catBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      if (_catalogSelectMode || _catalogReadOnly) return;
-      const cur = PRODUCTS[p._idx].category;
-      const curIdx = CATEGORY_CYCLE.indexOf(cur);
-      const next = CATEGORY_CYCLE[(curIdx + 1) % CATEGORY_CYCLE.length];
-      PRODUCTS[p._idx].category = next;
-      saveCatalog();
-      catBtn.className = 'cat-cycle' + (next ? ' set' : '');
-      catBtn.textContent = next ? CATEGORY_EMOJI[next] : '—';
-      catBtn.title = next ? CATEGORY_LABELS[next] : 'Без категории';
-      scheduleSessionSave();
-    });
-    row.appendChild(catBtn);
+    if (!_catalogReadOnly) {
+      const catBtn = document.createElement('button');
+      catBtn.type = 'button';
+      catBtn.className = 'cat-cycle' + (p.category ? ' set' : '');
+      catBtn.textContent = p.category ? CATEGORY_EMOJI[p.category] : '—';
+      catBtn.title = p.category ? CATEGORY_LABELS[p.category] : 'Без категории';
+      catBtn.disabled = _catalogSelectMode;
+      catBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (_catalogSelectMode) return;
+        const cur = PRODUCTS[p._idx].category;
+        const curIdx = CATEGORY_CYCLE.indexOf(cur);
+        const next = CATEGORY_CYCLE[(curIdx + 1) % CATEGORY_CYCLE.length];
+        PRODUCTS[p._idx].category = next;
+        saveCatalog();
+        catBtn.className = 'cat-cycle' + (next ? ' set' : '');
+        catBtn.textContent = next ? CATEGORY_EMOJI[next] : '—';
+        catBtn.title = next ? CATEGORY_LABELS[next] : 'Без категории';
+        scheduleSessionSave();
+      });
+      row.appendChild(catBtn);
+    }
 
     if (!_catalogSelectMode && !_catalogReadOnly) {
       const delBtn = document.createElement('button');
@@ -8516,6 +8525,12 @@ function bindMoreRows() {
         _catalogSelectMode = false;
         _catalogSelected = new Set();
         _catalogReadOnly = !_isOwner;
+        const catH3 = document.querySelector('#catalogModalContent .modal-header h3');
+        const catHint = document.querySelector('#catalogModalContent .modal-header .hint');
+        if (catH3) catH3.textContent = _catalogReadOnly ? 'Справочник' : 'Справочник сроков';
+        if (catHint) catHint.textContent = _catalogReadOnly
+          ? 'Список позиций и сроков годности. Только для просмотра.'
+          : 'Меняйте названия, сроки и категории. Тап по иконке категории — переключение.';
         updateCatalogSelectUI();
         renderCatalogList();
         openModal('catalogModal');
