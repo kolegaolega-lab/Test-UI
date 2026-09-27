@@ -1691,13 +1691,6 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
         <button id="publishBtn" class="purple" style="display:none">Опубликовать</button>
       </div>
       <div id="syncStatus" class="status"></div>
-
-      <div id="ownerActivateBlock" style="margin-top:14px">
-        <label>Ключ доступа</label>
-        <input id="tokenInput" type="password" placeholder="Введите ключ" autocomplete="off" maxlength="200">
-        <button id="activateOwnerBtn" class="purple block" style="margin-top:8px">Активировать режим владельца</button>
-      </div>
-      <button id="deactivateOwnerBtn" class="secondary block" style="display:none;margin-top:8px">Выйти из режима владельца</button>
     </div>
     <div class="modal-footer">
       <button id="closeSyncSettingsBtn" class="secondary block">Закрыть</button>
@@ -1713,7 +1706,16 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
       <p class="hint">Имя и токен видны только вам.</p>
     </div>
     <div class="modal-body">
-      <p class="hint" id="profileInfoText" style="margin:0 0 10px"></p>
+      <p class="hint" id="profileInfoText" style="margin:0 0 12px"></p>
+
+      <div style="border-top:1px solid var(--separator);margin:4px 0 14px"></div>
+
+      <div id="ownerActivateBlock">
+        <label>Ключ доступа владельца</label>
+        <input id="tokenInput" type="password" placeholder="Введите ключ" autocomplete="off" maxlength="200">
+        <button id="activateOwnerBtn" class="purple block" style="margin-top:8px">Активировать режим владельца</button>
+      </div>
+      <button id="deactivateOwnerBtn" class="secondary block" style="display:none;margin-top:8px">Выйти из режима владельца</button>
     </div>
     <div class="modal-footer">
       <button id="resetProfileBtn" class="secondary block" style="margin-bottom:8px">Сменить профиль</button>
@@ -8432,6 +8434,10 @@ function openSyncSettings() {
 }
 function openMyProfile() {
   updateProfileInfoBlock();
+  const tokenInput = $('tokenInput');
+  if (tokenInput) tokenInput.value = '';
+  const st = $('syncStatus');
+  if (st) { st.className = 'status'; st.textContent = ''; }
   openModal('myProfileModal');
 }
 function openAuditors() {
