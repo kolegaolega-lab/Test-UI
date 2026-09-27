@@ -615,6 +615,35 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   .section{margin-bottom:8px}
 }
 .section,.card,.modal-content,.cat-btn,button,input,textarea{transition-timing-function:cubic-bezier(.32,.72,0,1)}
+
+/* ═══════════════════════════════════════════
+   v9.9.9 — Таббар + FAB (Сессия 3, вариант А)
+   ═══════════════════════════════════════════ */
+main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+body[data-active-tab="home"] .section:not([data-tab="home"]),
+body[data-active-tab="check"] .section:not([data-tab="check"]),
+body[data-active-tab="catalog"] .section:not([data-tab="catalog"]),
+body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:500;background:rgba(255,255,255,.94);border-top:1px solid var(--separator);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+@media (prefers-color-scheme:dark){.tabbar{background:rgba(28,28,30,.94)}}
+.tabbar-btn{flex:1 1 0;min-width:0;background:transparent;border:0;padding:8px 4px 6px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text-secondary);font-family:inherit;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.01em;transition:color .15s;border-radius:0;white-space:nowrap;line-height:1.1}
+.tabbar-btn:active{opacity:.6}
+.tabbar-btn.active{color:var(--accent)}
+.tabbar-btn .tb-icon{font-size:20px;line-height:1;display:block;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Emoji","Apple Color Emoji",sans-serif}
+.tabbar-btn .tb-label{display:block;line-height:1.2;font-size:10px;font-weight:600}
+.tabbar-spacer{flex:0 0 64px;pointer-events:none}
+.tabbar-fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;border:4px solid var(--bg-card);box-shadow:0 6px 18px rgba(10,132,255,.38),0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;z-index:503;cursor:pointer;padding:0;min-height:0;transition:transform .18s cubic-bezier(.32,.72,0,1),box-shadow .18s;font-family:inherit}
+.tabbar-fab:active{transform:translateX(-50%) scale(.94)}
+.tabbar-fab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.fab-backdrop{position:fixed;inset:0;z-index:502;background:rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:opacity .18s}
+.fab-backdrop.show{opacity:1;pointer-events:auto}
+.fab-menu{position:fixed;left:50%;transform:translateX(-50%) translateY(8px);bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:504;background:var(--bg-card);border:1px solid var(--separator);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.24),0 4px 12px rgba(0,0,0,.12);overflow:hidden;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;min-width:240px}
+.fab-menu.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.fab-menu-item{display:flex;align-items:center;gap:12px;padding:14px 18px;background:transparent;border:0;border-bottom:1px solid var(--separator);width:100%;text-align:left;color:var(--text);font-family:inherit;font-size:14.5px;font-weight:500;cursor:pointer;min-height:auto;border-radius:0;white-space:normal}
+.fab-menu-item:last-child{border-bottom:0}
+.fab-menu-item:active{background:var(--bg-input)}
+.fab-menu-item .fm-icon{font-size:20px;line-height:1;flex:0 0 auto;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Emoji","Apple Color Emoji",sans-serif}
+</style>
 </style>
 </head>
 <body>
@@ -645,7 +674,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 
   <!-- ═══════════════ Параметры ═══════════════ -->
-  <div class="section">
+  <div class="section" data-tab="home">
     <div class="section-header">
       <h2>Параметры</h2>
       <p class="desc">Дата и время определяются автоматически.</p>
@@ -669,7 +698,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 
   <!-- ═══════════════ Материалы для проверки ═══════════════ -->
-  <div class="section">
+  <div class="section" data-tab="check">
     <div class="section-header">
       <h2>Материалы для проверки</h2>
       <p class="desc">Фото или PDF накладных и чека продаж.</p>
@@ -698,7 +727,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 
   <!-- ═══════════════ Распознавание (ОБЪЕДИНЁННАЯ) ═══════════════ -->
-  <div class="section">
+  <div class="section" data-tab="check">
     <div class="section-header">
       <h2>Распознавание</h2>
       <p class="desc">Отправьте фото в ИИ — он вернёт CSV с приходами и продажами.</p>
@@ -778,7 +807,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 
   <!-- ═══════════════ Импорт данных ═══════════════ -->
-  <div class="section">
+  <div class="section" data-tab="check">
     <div class="section-header">
       <h2>Импорт данных</h2>
       <p class="desc">Вставьте CSV, который вернул ИИ, или загрузите файл.</p>
@@ -798,7 +827,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 
   <!-- ═══════════════ Справочник ═══════════════ -->
-  <div class="section">
+  <div class="section" data-tab="catalog">
     <div class="section-header">
       <h2>Справочник</h2>
       <p class="desc">Хранится локально. Можно обновить с сервера.</p>
@@ -853,7 +882,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 
   <!-- ═══════════════ Результат ═══════════════ -->
-  <div class="section">
+  <div class="section" data-tab="check">
     <div class="section-header">
       <h2>Результат</h2>
       <p id="summary" class="desc">Загрузите CSV и введите фактический остаток.</p>
@@ -919,7 +948,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 
   <!-- ═══════════════ История проверок ═══════════════ -->
-  <div class="section">
+  <div class="section" data-tab="history">
     <div class="section-header">
       <h2>История проверок</h2>
       <p class="desc">Все аудиторы на всех точках. Тап → детали дня.</p>
@@ -952,7 +981,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 
   <!-- ═══════════════ Экспорт ═══════════════ -->
-  <div class="section">
+  <div class="section" data-tab="home">
     <div class="section-header">
       <h2>Экспорт</h2>
       <p class="desc">Скачайте отчёт или сохраните сессию.</p>
@@ -968,7 +997,47 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.9.8 · профиль · график · детали</div>
+  <div class="hint version">French Bakery Аудит · v9.9.9 · профиль · график · детали</div>
+
+</main>
+
+<!-- ═══════════════ v9.9.9 — Таббар + FAB ═══════════════ -->
+<div class="fab-backdrop" id="fabBackdrop"></div>
+
+<div class="fab-menu" id="fabMenu" role="menu" aria-label="Камера">
+  <button type="button" class="fab-menu-item" id="fabInvoiceBtn">
+    <span class="fm-icon">📷</span><span>Снять накладную</span>
+  </button>
+  <button type="button" class="fab-menu-item" id="fabSalesBtn">
+    <span class="fm-icon">🧾</span><span>Снять чек продаж</span>
+  </button>
+  <button type="button" class="fab-menu-item" id="fabGalleryBtn">
+    <span class="fm-icon">🖼</span><span>Из галереи</span>
+  </button>
+  <button type="button" class="fab-menu-item" id="fabPdfBtn">
+    <span class="fm-icon">📁</span><span>PDF-файл</span>
+  </button>
+</div>
+
+<button type="button" class="tabbar-fab" id="fabBtn" aria-label="Камера">
+  <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+</button>
+
+<nav class="tabbar" id="tabbar">
+  <button type="button" class="tabbar-btn active" data-tab="home">
+    <span class="tb-icon">🏠</span><span class="tb-label">Сегодня</span>
+  </button>
+  <button type="button" class="tabbar-btn" data-tab="check">
+    <span class="tb-icon">📋</span><span class="tb-label">Проверка</span>
+  </button>
+  <span class="tabbar-spacer"></span>
+  <button type="button" class="tabbar-btn" data-tab="history">
+    <span class="tb-icon">📅</span><span class="tb-label">График</span>
+  </button>
+  <button type="button" class="tabbar-btn" data-tab="catalog">
+    <span class="tb-icon">📚</span><span class="tb-label">Справочник</span>
+  </button>
+</nav>
 
 </main>
 
@@ -1410,7 +1479,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.9.8';
+const APP_VERSION = 'v9.9.9';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1428,6 +1497,9 @@ const HISTORY_QUEUE_KEY = 'fbAuditSyncQueue';
 const HISTORY_FETCH_LAST_KEY = 'fbAuditHistoryLastFetch';
 const HISTORY_DIR = 'history';
 const HISTORY_FETCH_COOLDOWN_MS = 30 * 60 * 1000;
+
+/* === v9.9.9: активная вкладка === */
+const ACTIVE_TAB_KEY = 'fbAuditActiveTab';
 
 /* === GEMINI === */
 const GEMINI_KEY = 'fbAuditGeminiKey';
@@ -8452,6 +8524,13 @@ function bindUI() {
     if (im !== 'numeric' && im !== 'decimal') return;
     requestAnimationFrame(() => { try { el.select(); } catch (_) {} });
   });
+
+  /* === v9.9.9: таббар + FAB === */
+  bindTabbar();
+  bindFab();
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeFabMenu();
+  });
 }
 
 /* ═══════════════════════════════════════════
@@ -8635,6 +8714,7 @@ function init() {
   }
 
   setActiveCategory(_activeCategory);
+  setActiveTab(loadActiveTab());
   renderTable();
   updateUnknownBanner();
   updateNoCategoryBanner();
@@ -8706,7 +8786,111 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.9.6 · profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', APP_VERSION + ' · tab:', document.body.dataset.activeTab, '· profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
+}
+
+/* ═══════════════════════════════════════════
+   v9.9.9 — РОУТЕР ВКЛАДОК
+   ═══════════════════════════════════════════ */
+const VALID_TABS = ['home', 'check', 'catalog', 'history'];
+
+function setActiveTab(tab) {
+  if (!VALID_TABS.includes(tab)) tab = 'home';
+  document.body.dataset.activeTab = tab;
+  const bar = $('tabbar');
+  if (bar) {
+    bar.querySelectorAll('.tabbar-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+  }
+  try { localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch (e) {}
+  // При возврате на вкладку «График» — тихо обновить календарь, если давно не читали
+  if (tab === 'history' && _profile && _profile.token && _calendarMonth) {
+    const lastFetch = _historyCache[_calendarMonth] && _historyCache[_calendarMonth].fetchedAt;
+    const age = lastFetch ? (Date.now() - lastFetch) : Infinity;
+    if (age > 5 * 60 * 1000) {
+      fetchAndCacheMonth(_calendarMonth).then(() => renderCalendar()).catch(e => console.warn('tab refresh:', e));
+    }
+  }
+}
+
+function loadActiveTab() {
+  try {
+    const v = localStorage.getItem(ACTIVE_TAB_KEY);
+    return VALID_TABS.includes(v) ? v : 'home';
+  } catch (e) { return 'home'; }
+}
+
+function bindTabbar() {
+  const bar = $('tabbar');
+  if (!bar) return;
+  bar.querySelectorAll('.tabbar-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setActiveTab(btn.dataset.tab);
+      // Плавный скролл наверх при переключении
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════
+   v9.9.9 — FAB
+   ═══════════════════════════════════════════ */
+function openFabMenu() {
+  const menu = $('fabMenu');
+  const backdrop = $('fabBackdrop');
+  if (!menu || !backdrop) return;
+  menu.classList.add('show');
+  backdrop.classList.add('show');
+}
+function closeFabMenu() {
+  const menu = $('fabMenu');
+  const backdrop = $('fabBackdrop');
+  if (!menu || !backdrop) return;
+  menu.classList.remove('show');
+  backdrop.classList.remove('show');
+}
+function bindFab() {
+  const btn = $('fabBtn');
+  const backdrop = $('fabBackdrop');
+  if (btn) btn.addEventListener('click', () => {
+    const menu = $('fabMenu');
+    if (menu && menu.classList.contains('show')) closeFabMenu();
+    else openFabMenu();
+  });
+  if (backdrop) backdrop.addEventListener('click', closeFabMenu);
+
+  const invInput = $('invoicePhotoInput');
+  const salInput = $('salesPhotoInput');
+
+  const invBtn = $('fabInvoiceBtn');
+  if (invBtn) invBtn.addEventListener('click', () => {
+    closeFabMenu();
+    // Перейти на вкладку «Проверка», чтобы очередь фото была видна
+    setActiveTab('check');
+    setTimeout(() => { if (invInput) invInput.click(); }, 150);
+  });
+
+  const salBtn = $('fabSalesBtn');
+  if (salBtn) salBtn.addEventListener('click', () => {
+    closeFabMenu();
+    setActiveTab('check');
+    setTimeout(() => { if (salInput) salInput.click(); }, 150);
+  });
+
+  const galBtn = $('fabGalleryBtn');
+  if (galBtn) galBtn.addEventListener('click', () => {
+    closeFabMenu();
+    setActiveTab('check');
+    setTimeout(() => { if (invInput) invInput.click(); }, 150);
+  });
+
+  const pdfBtn = $('fabPdfBtn');
+  if (pdfBtn) pdfBtn.addEventListener('click', () => {
+    closeFabMenu();
+    setActiveTab('check');
+    setTimeout(() => { if (invInput) invInput.click(); }, 150);
+  });
 }
 
 /* ═══════════════════════════════════════════
