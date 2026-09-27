@@ -249,7 +249,7 @@ details.settings .content{margin-top:12px;display:flex;flex-direction:column;gap
 .modal-body::-webkit-scrollbar{display:none;width:0;height:0}
 .modal-footer{flex:0 0 auto;padding:12px 12px calc(16px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--separator);background:var(--bg-card);position:relative;z-index:10}
 .modal-footer button{pointer-events:auto;cursor:pointer}
-#unknownModalContent,#catalogModalContent,#ignoredModalContent,#aliasesModalContent,#aliasTargetModalContent,#reportModalContent,#noCategoryModalContent,#pricesModalContent,#compareModalContent{display:flex;flex-direction:column;padding:0 !important;height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px) - env(safe-area-inset-top,0px));max-height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px) - env(safe-area-inset-top,0px));overflow:hidden}
+#unknownModalContent,#catalogModalContent,#ignoredModalContent,#aliasesModalContent,#aliasTargetModalContent,#reportModalContent,#noCategoryModalContent,#pricesModalContent,#compareModalContent,#pointsManagerContent,#pointPickerContent{display:flex;flex-direction:column;padding:0 !important;height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px) - env(safe-area-inset-top,0px));max-height:calc(100dvh - 32px - env(safe-area-inset-bottom,0px) - env(safe-area-inset-top,0px));overflow:hidden}
 .unknown-toolbar-block{flex:0 0 auto;padding:0 12px 12px;background:var(--bg-card);border-bottom:1px solid var(--separator)}
 .unknown-toolbar-block .unknown-counter{margin:0 0 10px}
 .unknown-toolbar-block .unknown-toolbar{padding:0 0 10px}
@@ -454,6 +454,64 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
 .manual-btn:active{background:var(--bg-elev-2)}
 .manual-btn.primary{background:#0a84ff;color:#fff;font-weight:600 !important;border:0;box-shadow:0 1px 2px rgba(0,0,0,.06),inset 0 0 0 .5px rgba(255,255,255,.1)}
 .manual-btn.primary:active{opacity:.85}
+/* ═══════════════════════════════════════════
+   v9.9.0 — Профиль / Точки / Первый запуск
+   ═══════════════════════════════════════════ */
+.point-chip{display:none;align-items:center;gap:5px;background:var(--accent-soft);color:var(--accent);border:0;padding:6px 10px;border-radius:99px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;flex:0 0 auto;margin-left:auto;transition:transform .15s,opacity .15s}
+.point-chip:active{transform:scale(.96);opacity:.85}
+.point-chip.show{display:inline-flex}
+.point-chip svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.profile-line{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-tertiary);margin-top:2px}
+.profile-line .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block}
+.profile-line .sync-dot.wait{background:var(--orange)}
+.profile-line b{color:var(--text-secondary);font-weight:600}
+.first-run-modal{max-width:440px}
+.first-run-modal .modal-header{padding:24px 20px 14px;text-align:center}
+.first-run-modal .fr-logo{width:64px;height:64px;border-radius:16px;background:#faf5e6;display:inline-flex;align-items:center;justify-content:center;margin:0 auto 14px;font-weight:800;color:#2d4a2b;font-size:22px;overflow:hidden}
+.first-run-modal .fr-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.first-run-modal h3{margin:0 0 6px;font-size:20px;font-weight:800;letter-spacing:-.4px}
+.first-run-modal .fr-hint{font-size:13px;color:var(--text-secondary);margin:0;line-height:1.5}
+.first-run-modal .modal-body{padding:0 20px 20px}
+.first-run-modal .field{margin-bottom:14px}
+.first-run-modal .field label{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px}
+.first-run-modal .field input{width:100%;padding:12px 14px;border:1px solid var(--separator-opaque);border-radius:11px;background:var(--bg-input);color:var(--text);font-size:15px;font-family:inherit;outline:none;min-height:46px;box-sizing:border-box}
+.first-run-modal .field input:focus{border-color:var(--accent);background:var(--bg-card);box-shadow:0 0 0 3.5px var(--accent-soft)}
+.first-run-modal .field .sub{font-size:11px;color:var(--text-tertiary);margin-top:5px;line-height:1.4}
+.first-run-modal .field .sub a{color:var(--accent);text-decoration:none;font-weight:600}
+.first-run-modal .fr-note{padding:11px 13px;background:var(--bg-input);border-radius:10px;font-size:12px;color:var(--text-secondary);line-height:1.45;margin-bottom:16px}
+.first-run-modal .fr-note b{color:var(--text);font-weight:600}
+.first-run-modal .fr-error{display:none;padding:11px 13px;background:var(--red-soft);color:var(--red);border-radius:10px;font-size:12.5px;font-weight:600;line-height:1.4;margin-bottom:12px}
+.first-run-modal .fr-error.show{display:block}
+.first-run-modal .fr-btn{width:100%;padding:13px;background:#0a84ff;color:#fff;font-weight:700;font-size:15px;border-radius:12px;border:0;font-family:inherit;cursor:pointer;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px}
+.first-run-modal .fr-btn:disabled{opacity:.5;cursor:not-allowed}
+.first-run-modal .fr-btn.busy{pointer-events:none;opacity:.7}
+.pt-toolbar{display:flex;gap:8px;padding:0 12px 12px;border-bottom:1px solid var(--separator);margin-bottom:8px}
+.pt-toolbar button{flex:1;min-height:38px;font-size:13.5px;padding:8px 12px}
+.pt-row{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--separator)}
+.pt-row:last-child{border-bottom:0}
+.pt-icon{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:17px}
+.pt-body{flex:1;min-width:0}
+.pt-num{font-size:14px;font-weight:700;line-height:1.2;display:block}
+.pt-name{font-size:11.5px;color:var(--text-secondary);margin-top:2px;line-height:1.3;display:block}
+.pt-del{width:34px;height:34px;padding:0;border-radius:9px;background:var(--red-soft);color:var(--red);border:0;font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.pt-empty{padding:32px 16px;text-align:center;color:var(--text-tertiary);font-size:13px;line-height:1.5}
+.pt-empty b{color:var(--text-secondary);font-weight:600;display:block;margin-bottom:6px}
+.pt-add-form{padding:12px;background:var(--bg-input);border-radius:12px;margin:0 12px 12px}
+.pt-add-form label{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px}
+.pt-add-form input{width:100%;padding:10px 12px;border:1px solid var(--separator-opaque);border-radius:9px;background:var(--bg-card);color:var(--text);font-size:14px;font-family:inherit;outline:none;min-height:40px;box-sizing:border-box;margin-bottom:10px}
+.pt-add-form input:focus{border-color:var(--accent)}
+.pt-add-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick-row{display:flex;align-items:center;gap:12px;padding:14px 20px;background:transparent;border:0;border-top:1px solid var(--separator);width:100%;text-align:left;color:var(--text);font-family:inherit;cursor:pointer}
+.pick-row:first-child{border-top:0}
+.pick-row:active{background:var(--bg-input)}
+.pick-row.selected{background:var(--accent-soft)}
+.pick-icon{width:38px;height:38px;border-radius:10px;background:var(--bg-input);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:18px}
+.pick-row.selected .pick-icon{background:var(--accent);color:#fff}
+.pick-body{flex:1;min-width:0;display:flex;flex-direction:column}
+.pick-num{font-size:15px;font-weight:600;line-height:1.2}
+.pick-addr{font-size:12px;color:var(--text-secondary);margin-top:2px;line-height:1.3}
+.pick-check{color:var(--accent);font-size:20px;font-weight:700;flex:0 0 auto;display:none}
+.pick-row.selected .pick-check{display:block}
 @media (orientation: landscape) and (max-height: 500px){
   .cat-btn{height:78px}
   .cat-btn .cat-emoji{font-size:24px}
@@ -471,8 +529,10 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     <div class="logo" id="appLogo">FB</div>
     <div class="header-text">
       <h1>French Bakery Аудит</h1>
+      <div class="profile-line" id="headerProfileLine"></div>
     </div>
     <div id="headerBadge" class="header-badge"></div>
+    <button id="headerPointChip" class="point-chip" type="button"></button>
   </div>
 </div>
 
@@ -670,6 +730,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
       </div>
       <button id="aliasesBtn" class="secondary block" style="display:none;margin-top:8px">Алиасы (<span id="aliasesCount">0</span>)</button>
       <button id="pricesBtn" class="secondary block" style="display:none;margin-top:8px">Цены позиций</button>
+      <button id="pointsBtn" class="secondary block" style="margin-top:8px">Точки (<span id="pointsCount">0</span>)</button>
       <details class="settings">
         <summary>Настройки синхронизации</summary>
         <div class="content">
@@ -681,6 +742,15 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
             <button id="activateOwnerBtn" class="purple block">Активировать режим владельца</button>
           </div>
           <button id="deactivateOwnerBtn" class="secondary block" style="display:none">Выйти из режима владельца</button>
+        </div>
+      </details>
+      <details class="settings">
+        <summary>Мой профиль</summary>
+        <div class="content">
+          <div id="profileInfoBlock">
+            <p class="hint" id="profileInfoText" style="margin:0 0 10px"></p>
+            <button id="resetProfileBtn" class="secondary block">Сменить профиль</button>
+          </div>
         </div>
       </details>
     </div>
@@ -769,7 +839,7 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.8.4 · +Gemini · редактор расхождений</div>
+  <div class="hint version">French Bakery Аудит · v9.9.0 · профиль · точки</div>
 
 </main>
 
@@ -1066,6 +1136,84 @@ pre.code{background:#0f172a;color:#a5f3fc;padding:14px;border-radius:var(--r-sm)
   </div>
 </div>
 
+<!-- ═══════════════ Модалка: Первый запуск ═══════════════ -->
+<div id="firstRunModal" class="modal hidden">
+  <div class="modal-content first-run-modal">
+    <div class="modal-header">
+      <div class="fr-logo" id="firstRunLogo">FB</div>
+      <h3>Кто вы?</h3>
+      <p class="fr-hint">Настройте профиль аудитора. Это нужно один раз.</p>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Ваше имя</label>
+        <input id="firstRunName" type="text" placeholder="Алексей" autocomplete="off" maxlength="60">
+        <div class="sub">Так вас увидят другие аудиторы в истории проверок.</div>
+      </div>
+      <div class="field">
+        <label>GitHub-токен</label>
+        <input id="firstRunToken" type="password" placeholder="ghp_..." autocomplete="off" maxlength="200">
+        <div class="sub">
+          Нужен для синхронизации. Получить:
+          <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>
+          → Generate new token (classic) → scope <b>repo</b>.
+        </div>
+      </div>
+      <div class="fr-note">
+        <b>Зачем токен?</b> Он хранится только в вашем браузере. Через него проверки уходят в общую историю, а вы видите чужие.
+      </div>
+      <div class="fr-error" id="firstRunError"></div>
+      <button id="firstRunSubmit" class="fr-btn">Начать работу</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Модалка: Выбор точки ═══════════════ -->
+<div id="pointPickerModal" class="modal hidden">
+  <div class="modal-content" id="pointPickerContent">
+    <div class="modal-header">
+      <h3>Где вы сейчас?</h3>
+      <p class="hint">Выберите точку. Она будет активной для всех проверок.</p>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div id="pointPickerList"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="pointPickerManageBtn" class="secondary block" style="margin-bottom:8px">Управление точками</button>
+      <button id="pointPickerCloseBtn" class="secondary block">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Модалка: Управление точками ═══════════════ -->
+<div id="pointsManagerModal" class="modal hidden">
+  <div class="modal-content" id="pointsManagerContent">
+    <div class="modal-header">
+      <h3>Точки</h3>
+      <p class="hint">Список точек компании. Ведёт владелец.</p>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div id="pointsManagerList"></div>
+    </div>
+    <div class="pt-add-form" id="pointAddForm" style="display:none">
+      <label>Номер</label>
+      <input id="newPointNum" type="text" placeholder="№037" maxlength="20">
+      <label>Название</label>
+      <input id="newPointName" type="text" placeholder="ТЦ Европейский" maxlength="80">
+      <label>Адрес</label>
+      <input id="newPointAddr" type="text" placeholder="Ленинградское ш., 25" maxlength="120">
+      <div class="row2">
+        <button id="newPointCancelBtn" class="secondary">Отмена</button>
+        <button id="newPointSaveBtn" class="primary">Добавить</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="pointManagerAddBtn" class="primary block" style="margin-bottom:8px">＋ Добавить точку</button>
+      <button id="pointManagerCloseBtn" class="secondary block">Закрыть</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ Тост обновления PWA ═══════════════ -->
 <div id="updateBanner" class="toast">Доступно обновление · нажмите, чтобы перезагрузить</div>
 
@@ -1105,11 +1253,17 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.8.4';
+const APP_VERSION = 'v9.9.0';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
 const UNKNOWN_SEARCH_THRESHOLD = 20;
+
+/* === v9.9.0: профиль и точки === */
+const PROFILE_KEY = 'fbAuditProfile';
+const POINTS_KEY = 'fbAuditPoints';
+const ACTIVE_POINT_KEY = 'fbAuditActivePoint';
+const ROUTE_KEY = 'fbAuditRoute';
 
 /* === GEMINI === */
 const GEMINI_KEY = 'fbAuditGeminiKey';
@@ -1189,6 +1343,12 @@ let _dailyAccum = [];
 let _dailyEditing = null;
 let _modelsRefreshScheduled = false;
 let _geminiTestImageCache = null;
+
+/* === v9.9.0: профиль / точки / маршрут === */
+let _profile = null;
+let _points = [];
+let _activePointId = null;
+let _route = null;
 
 /* ═══════════════════════════════════════════
    БАЗОВЫЕ УТИЛИТЫ
@@ -1951,7 +2111,8 @@ function buildSyncPayload() {
     version: 1,
     updatedAt: new Date().toISOString(),
     updatedBy: APP_VERSION,
-    products: PRODUCTS, ignored: IGNORED, aliases: ALIASES, prices: PRICES
+    products: PRODUCTS, ignored: IGNORED, aliases: ALIASES, prices: PRICES,
+    points: _points
   };
 }
 function syncPullFromServer(opts) {
@@ -1994,12 +2155,35 @@ function syncPullFromServer(opts) {
     }
     PRICES = out; savePrices();
   }
+  if (Array.isArray(remote.points)) {
+    const seen = new Set();
+    const cleanedPoints = [];
+    for (const p of remote.points.slice(0, 500)) {
+      if (!p || typeof p !== 'object') continue;
+      const id = safeStr(p.id || '', 30);
+      const num = safeStr(p.num || '', 20);
+      const name = safeStr(p.name || '', 80);
+      const address = safeStr(p.address || '', 120);
+      if (!id || !num || seen.has(id)) continue;
+      seen.add(id);
+      cleanedPoints.push({ id, num, name, address });
+    }
+    _points = cleanedPoints;
+    savePoints();
+    if (_activePointId && !getPointById(_activePointId)) _activePointId = null;
+    if (!_activePointId && _points.length) _activePointId = _points[0].id;
+    try {
+      if (_activePointId) localStorage.setItem(ACTIVE_POINT_KEY, _activePointId);
+    } catch (e) {}
+    updateHeaderPoint();
+    updatePointsCount();
+  }
   try { localStorage.setItem(SYNC_LOCAL_UPDATED_AT, String(remote.updatedAt || '')); } catch (e) {}
   _pendingRemote = null;
   updateCatalogMeta(); renderTable(); updateUnknownBanner();
   if (!silent && statusEl) {
     statusEl.className = 'status show ok';
-    statusEl.textContent = `Загружено с сервера: ${PRODUCTS.length} позиций.`;
+    statusEl.textContent = `Загружено с сервера: ${PRODUCTS.length} позиций, ${_points.length} точек.`;
   }
   return true;
 }
@@ -2016,11 +2200,11 @@ async function syncPushToServer() {
   if (result.ok) {
     try { localStorage.setItem(SYNC_LOCAL_UPDATED_AT, payload.updatedAt); } catch (e) {}
     try {
-      const backup = { version: 1, savedAt: Date.now(), products: PRODUCTS, ignored: IGNORED, aliases: ALIASES, prices: PRICES };
+      const backup = { version: 1, savedAt: Date.now(), products: PRODUCTS, ignored: IGNORED, aliases: ALIASES, prices: PRICES, points: _points };
       localStorage.setItem(CATALOG_BACKUP_KEY, JSON.stringify(backup));
     } catch (e) {}
     updateCatalogMeta();
-    if (statusEl) { statusEl.className = 'status show ok'; statusEl.textContent = `Опубликовано: ${PRODUCTS.length} позиций.`; }
+    if (statusEl) { statusEl.className = 'status show ok'; statusEl.textContent = `Опубликовано: ${PRODUCTS.length} позиций, ${_points.length} точек.`; }
     return { ok: true };
   } else {
     let msg = result.message || 'Ошибка публикации';
@@ -2073,7 +2257,8 @@ function showCatalogUpdateBanner(remote) {
   if (!banner) return;
   if (meta) {
     const cnt = Array.isArray(remote.products) ? remote.products.length : 0;
-    meta.textContent = `${formatDateTimeRu(remote.updatedAt)} · ${cnt} позиций`;
+    const ptCnt = Array.isArray(remote.points) ? remote.points.length : 0;
+    meta.textContent = `${formatDateTimeRu(remote.updatedAt)} · ${cnt} позиций · ${ptCnt} точек`;
   }
   banner.classList.remove('hidden');
 }
@@ -2086,7 +2271,7 @@ function applyPendingRemote() {
   const ok = syncPullFromServer({ silent: true, remote });
   _pendingRemote = null;
   hideCatalogUpdateBanner();
-  if (ok) showToast(`Справочник обновлён: ${PRODUCTS.length} позиций`);
+  if (ok) showToast(`Обновлено: ${PRODUCTS.length} позиций, ${_points.length} точек`);
 }
 
 /* ═══════════════════════════════════════════
@@ -2358,6 +2543,374 @@ function applySession(data) {
     } else noCategoryRows = [];
     return true;
   } finally { isRestoring = false; }
+}
+
+/* ═══════════════════════════════════════════
+   v9.9.0 — ПРОФИЛЬ АУДИТОРА
+   ═══════════════════════════════════════════ */
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (!p || typeof p !== 'object') return null;
+    if (typeof p.name !== 'string' || typeof p.token !== 'string') return null;
+    return {
+      login: typeof p.login === 'string' ? p.login.slice(0, 60) : '',
+      name: p.name.slice(0, 60),
+      token: p.token.slice(0, 200),
+      createdAt: typeof p.createdAt === 'number' ? p.createdAt : Date.now()
+    };
+  } catch (e) { return null; }
+}
+function saveProfile(p) {
+  if (!p || typeof p !== 'object') return false;
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({
+      login: safeStr(p.login || '', 60),
+      name: safeStr(p.name || '', 60),
+      token: String(p.token || '').slice(0, 200),
+      createdAt: p.createdAt || Date.now()
+    }));
+    _profile = loadProfile();
+    return true;
+  } catch (e) { return false; }
+}
+function clearProfile() {
+  try { localStorage.removeItem(PROFILE_KEY); } catch (e) {}
+  _profile = null;
+}
+
+/* ═══════════════════════════════════════════
+   v9.9.0 — ТОЧКИ
+   ═══════════════════════════════════════════ */
+function loadPoints() {
+  try {
+    const raw = localStorage.getItem(POINTS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    const seen = new Set();
+    const out = [];
+    for (const p of arr.slice(0, 500)) {
+      if (!p || typeof p !== 'object') continue;
+      const id = safeStr(p.id || '', 30);
+      const num = safeStr(p.num || '', 20);
+      const name = safeStr(p.name || '', 80);
+      const address = safeStr(p.address || '', 120);
+      if (!id || !num || seen.has(id)) continue;
+      seen.add(id);
+      out.push({ id, num, name, address });
+    }
+    return out;
+  } catch (e) { return []; }
+}
+function savePoints() {
+  try { localStorage.setItem(POINTS_KEY, JSON.stringify(_points)); } catch (e) {}
+}
+function generatePointId() {
+  return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+function addPoint(num, name, address) {
+  const n = safeStr(num, 20).trim();
+  const nm = safeStr(name, 80).trim();
+  const a = safeStr(address, 120).trim();
+  if (!n) return null;
+  if (_points.some(p => p.num.toLowerCase() === n.toLowerCase())) return null;
+  const p = { id: generatePointId(), num: n, name: nm, address: a };
+  _points.push(p);
+  savePoints();
+  updatePointsCount();
+  return p;
+}
+function removePoint(id) {
+  _points = _points.filter(p => p.id !== id);
+  savePoints();
+  updatePointsCount();
+  if (_activePointId === id) {
+    _activePointId = _points.length ? _points[0].id : null;
+    try {
+      if (_activePointId) localStorage.setItem(ACTIVE_POINT_KEY, _activePointId);
+      else localStorage.removeItem(ACTIVE_POINT_KEY);
+    } catch (e) {}
+  }
+}
+function getPointById(id) {
+  return _points.find(p => p.id === id) || null;
+}
+function loadActivePointId() {
+  try {
+    const v = localStorage.getItem(ACTIVE_POINT_KEY);
+    return v ? String(v).slice(0, 30) : null;
+  } catch (e) { return null; }
+}
+function setActivePointId(id) {
+  if (id && !getPointById(id)) return false;
+  _activePointId = id || null;
+  try {
+    if (_activePointId) localStorage.setItem(ACTIVE_POINT_KEY, _activePointId);
+    else localStorage.removeItem(ACTIVE_POINT_KEY);
+  } catch (e) {}
+  updateHeaderPoint();
+  syncActivePointToInput();
+  return true;
+}
+function getActivePoint() {
+  return _activePointId ? getPointById(_activePointId) : null;
+}
+function syncActivePointToInput() {
+  const p = getActivePoint();
+  const inp = $('point');
+  if (inp && p) inp.value = p.num;
+}
+function updateHeaderPoint() {
+  const el = $('headerPointChip');
+  if (!el) return;
+  const p = getActivePoint();
+  if (p) {
+    el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>' + escapeHtml(p.num) + '</span>';
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+    el.innerHTML = '';
+  }
+}
+function updatePointsCount() {
+  const el = $('pointsCount'); if (el) el.textContent = String(_points.length);
+}
+function updateHeaderProfile() {
+  const el = $('headerProfileLine');
+  if (!el) return;
+  if (_profile) {
+    el.innerHTML = '<span class="sync-dot"></span> <b>' + escapeHtml(_profile.name) + '</b>';
+  } else {
+    el.innerHTML = '';
+  }
+}
+function updateProfileInfoBlock() {
+  const t = $('profileInfoText');
+  if (!t) return;
+  if (_profile) {
+    const created = _profile.createdAt ? formatDateTimeRu(new Date(_profile.createdAt).toISOString()) : '—';
+    t.innerHTML = '<b>' + escapeHtml(_profile.name) + '</b><br>Профиль создан: ' + created + (_profile.login ? '<br>GitHub: <b>' + escapeHtml(_profile.login) + '</b>' : '');
+  } else {
+    t.textContent = 'Профиль не настроен.';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   v9.9.0 — МАРШРУТ ДНЯ
+   ═══════════════════════════════════════════ */
+function loadRoute() {
+  try {
+    const raw = localStorage.getItem(ROUTE_KEY);
+    if (!raw) return null;
+    const r = JSON.parse(raw);
+    if (!r || typeof r !== 'object') return null;
+    if (typeof r.date !== 'string' || !Array.isArray(r.pointIds)) return null;
+    return {
+      date: r.date,
+      pointIds: r.pointIds.filter(id => typeof id === 'string').slice(0, 20)
+    };
+  } catch (e) { return null; }
+}
+function saveRoute() {
+  try {
+    if (_route) localStorage.setItem(ROUTE_KEY, JSON.stringify(_route));
+    else localStorage.removeItem(ROUTE_KEY);
+  } catch (e) {}
+}
+function ensureRouteToday() {
+  const today = getTodayStr();
+  if (!_route || _route.date !== today) {
+    _route = { date: today, pointIds: [] };
+    saveRoute();
+  }
+  return _route;
+}
+
+/* ═══════════════════════════════════════════
+   v9.9.0 — МОДАЛКА ПЕРВОГО ЗАПУСКА
+   ═══════════════════════════════════════════ */
+function showFirstRunModal() {
+  const m = $('firstRunModal');
+  if (!m) return;
+  const nameEl = $('firstRunName');
+  const tokenEl = $('firstRunToken');
+  const errEl = $('firstRunError');
+  if (nameEl) nameEl.value = '';
+  if (tokenEl) tokenEl.value = '';
+  if (errEl) { errEl.className = 'fr-error'; errEl.textContent = ''; }
+  const logo = $('firstRunLogo');
+  if (logo && !logo.querySelector('img')) {
+    const img = document.createElement('img');
+    img.src = 'logo.png';
+    img.alt = 'FB';
+    img.onload = () => { logo.innerHTML = ''; logo.appendChild(img); };
+    img.onerror = () => {};
+  }
+  openModal('firstRunModal');
+  setTimeout(() => { if (nameEl) nameEl.focus(); }, 300);
+}
+function hideFirstRunModal() {
+  closeModal('firstRunModal');
+}
+async function submitFirstRun() {
+  const nameEl = $('firstRunName');
+  const tokenEl = $('firstRunToken');
+  const errEl = $('firstRunError');
+  const btn = $('firstRunSubmit');
+  const setErr = (msg) => { if (errEl) { errEl.className = 'fr-error show'; errEl.textContent = msg; } };
+  const clearErr = () => { if (errEl) { errEl.className = 'fr-error'; errEl.textContent = ''; } };
+  clearErr();
+  const name = nameEl ? safeStr(nameEl.value.trim(), 60) : '';
+  const token = tokenEl ? String(tokenEl.value).trim() : '';
+  if (!name) { setErr('Введите имя'); return; }
+  if (name.length < 2) { setErr('Имя слишком короткое'); return; }
+  if (!token) { setErr('Введите GitHub-токен'); return; }
+  if (token.length < 20) { setErr('Токен выглядит некорректно'); return; }
+  if (btn) { btn.classList.add('busy'); btn.disabled = true; }
+  setErr('Проверка токена…');
+  let login = '';
+  try {
+    const res = await fetchWithTimeout(`${GITHUB_API}/user`, {
+      headers: { 'Authorization': `token ${token}` }
+    }, 15000);
+    if (res.status === 401) {
+      setErr('Неверный токен. Проверьте права (scope repo).');
+      if (btn) { btn.classList.remove('busy'); btn.disabled = false; }
+      return;
+    }
+    if (!res.ok) {
+      setErr('GitHub вернул ошибку ' + res.status + '. Попробуйте позже.');
+      if (btn) { btn.classList.remove('busy'); btn.disabled = false; }
+      return;
+    }
+    const data = await res.json();
+    login = typeof data.login === 'string' ? data.login : '';
+  } catch (e) {
+    setErr('Нет связи с GitHub. Проверьте интернет.');
+    if (btn) { btn.classList.remove('busy'); btn.disabled = false; }
+    return;
+  }
+  const ok = saveProfile({ login, name, token, createdAt: Date.now() });
+  if (!ok) {
+    setErr('Не удалось сохранить профиль.');
+    if (btn) { btn.classList.remove('busy'); btn.disabled = false; }
+    return;
+  }
+  if (btn) { btn.classList.remove('busy'); btn.disabled = false; }
+  hideFirstRunModal();
+  updateHeaderProfile();
+  updateProfileInfoBlock();
+  showToast('Профиль сохранён: ' + name);
+  if (!_points.length) {
+    setTimeout(() => { openPointsManager(); }, 400);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   v9.9.0 — UI СПИСКА ТОЧЕК
+   ═══════════════════════════════════════════ */
+function renderPointPickerList() {
+  const box = $('pointPickerList');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!_points.length) {
+    box.innerHTML = '<div class="pt-empty"><b>Точек пока нет</b>Добавьте первую точку — через «Управление точками».</div>';
+    return;
+  }
+  _points.slice().sort((a, b) => naturalCompare(a.num, b.num)).forEach(p => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pick-row' + (p.id === _activePointId ? ' selected' : '');
+    const addr = [p.name, p.address].filter(Boolean).join(' · ');
+    btn.innerHTML =
+      '<span class="pick-icon">📍</span>' +
+      '<span class="pick-body">' +
+        '<span class="pick-num">' + escapeHtml(p.num) + '</span>' +
+        (addr ? '<span class="pick-addr">' + escapeHtml(addr) + '</span>' : '') +
+      '</span>' +
+      '<span class="pick-check">✓</span>';
+    btn.onclick = () => {
+      setActivePointId(p.id);
+      closeModal('pointPickerModal');
+      showToast('Активная точка: ' + p.num);
+    };
+    box.appendChild(btn);
+  });
+}
+function openPointPicker() {
+  renderPointPickerList();
+  openModal('pointPickerModal');
+}
+function renderPointsManagerList() {
+  const box = $('pointsManagerList');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!_points.length) {
+    box.innerHTML = '<div class="pt-empty"><b>Список пуст</b>Добавьте первую точку — кнопкой ниже.</div>';
+    return;
+  }
+  _points.slice().sort((a, b) => naturalCompare(a.num, b.num)).forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'pt-row';
+    const addr = [p.name, p.address].filter(Boolean).join(' · ');
+    row.innerHTML =
+      '<span class="pt-icon">📍</span>' +
+      '<span class="pt-body">' +
+        '<span class="pt-num">' + escapeHtml(p.num) + '</span>' +
+        (addr ? '<span class="pt-name">' + escapeHtml(addr) + '</span>' : '') +
+      '</span>';
+    const del = document.createElement('button');
+    del.className = 'pt-del';
+    del.type = 'button';
+    del.textContent = '✕';
+    del.setAttribute('aria-label', 'Удалить');
+    del.onclick = () => {
+      if (!confirm('Удалить точку ' + p.num + '?')) return;
+      removePoint(p.id);
+      renderPointsManagerList();
+      updateHeaderPoint();
+    };
+    row.appendChild(del);
+    box.appendChild(row);
+  });
+}
+function openPointsManager() {
+  const form = $('pointAddForm');
+  if (form) form.style.display = 'none';
+  renderPointsManagerList();
+  openModal('pointsManagerModal');
+}
+function showPointAddForm() {
+  const form = $('pointAddForm');
+  if (!form) return;
+  form.style.display = 'block';
+  const n = $('newPointNum'); if (n) { n.value = ''; }
+  const nm = $('newPointName'); if (nm) { nm.value = ''; }
+  const a = $('newPointAddr'); if (a) { a.value = ''; }
+  setTimeout(() => { if (n) n.focus(); }, 200);
+}
+function hidePointAddForm() {
+  const form = $('pointAddForm');
+  if (form) form.style.display = 'none';
+}
+function saveNewPoint() {
+  const numEl = $('newPointNum');
+  const nameEl = $('newPointName');
+  const addrEl = $('newPointAddr');
+  const num = numEl ? numEl.value.trim() : '';
+  const name = nameEl ? nameEl.value.trim() : '';
+  const addr = addrEl ? addrEl.value.trim() : '';
+  if (!num) { showToast('Введите номер точки'); return; }
+  const p = addPoint(num, name, addr);
+  if (!p) { showToast('Точка с таким номером уже есть'); return; }
+  hidePointAddForm();
+  renderPointsManagerList();
+  if (!_activePointId) setActivePointId(p.id);
+  updateHeaderPoint();
+  showToast('Точка добавлена: ' + p.num);
 }
     /* ═══════════════════════════════════════════
    RESULT META + NAV
@@ -5629,7 +6182,7 @@ function measureHeader() {
   const height = h.getBoundingClientRect().height;
   document.documentElement.style.setProperty('--header-h', height + 'px');
 }
-    /* ═══════════════════════════════════════════
+  /* ═══════════════════════════════════════════
    СВЕРКА ДВУХ CSV
    ═══════════════════════════════════════════ */
 function cmpSplitLine(line, sep) {
@@ -6239,8 +6792,7 @@ function cmpBindUI() {
   const closeBtn = $('cmpCloseBtn'); if (closeBtn) closeBtn.onclick = closeCompareModal;
   const applyBtn = $('cmpApplyBtn'); if (applyBtn) applyBtn.onclick = cmpApplyMatched;
 }
-
-/* ═══════════════════════════════════════════
+  /* ═══════════════════════════════════════════
    BIND UI
    ═══════════════════════════════════════════ */
 function bindUI() {
@@ -6392,6 +6944,43 @@ function bindUI() {
   }
 
   bindCategoryGrid();
+
+  /* === v9.9.0: первый запуск === */
+  const frSubmit = $('firstRunSubmit'); if (frSubmit) frSubmit.onclick = submitFirstRun;
+  const frName = $('firstRunName');
+  if (frName) frName.addEventListener('keydown', e => { if (e.key === 'Enter') { const t = $('firstRunToken'); if (t) t.focus(); } });
+  const frToken = $('firstRunToken');
+  if (frToken) frToken.addEventListener('keydown', e => { if (e.key === 'Enter') submitFirstRun(); });
+
+  /* === v9.9.0: выбор точки === */
+  const chip = $('headerPointChip');
+  if (chip) chip.onclick = () => openPointPicker();
+  const pickManage = $('pointPickerManageBtn');
+  if (pickManage) pickManage.onclick = () => { closeModal('pointPickerModal'); setTimeout(openPointsManager, 200); };
+  const pickClose = $('pointPickerCloseBtn');
+  if (pickClose) pickClose.onclick = () => closeModal('pointPickerModal');
+
+  /* === v9.9.0: управление точками === */
+  const pointsBtn = $('pointsBtn');
+  if (pointsBtn) pointsBtn.onclick = () => openPointsManager();
+  const pmAdd = $('pointManagerAddBtn');
+  if (pmAdd) pmAdd.onclick = showPointAddForm;
+  const pmClose = $('pointManagerCloseBtn');
+  if (pmClose) pmClose.onclick = () => closeModal('pointsManagerModal');
+  const npCancel = $('newPointCancelBtn');
+  if (npCancel) npCancel.onclick = hidePointAddForm;
+  const npSave = $('newPointSaveBtn');
+  if (npSave) npSave.onclick = saveNewPoint;
+
+  /* === v9.9.0: профиль === */
+  const resetProfileBtn = $('resetProfileBtn');
+  if (resetProfileBtn) resetProfileBtn.onclick = () => {
+    if (!confirm('Сменить профиль? Текущий профиль будет удалён, приложение попросит ввести имя и токен заново.')) return;
+    clearProfile();
+    updateHeaderProfile();
+    updateProfileInfoBlock();
+    setTimeout(showFirstRunModal, 300);
+  };
 
   const applyBtn = $('applyCsvBtn'); if (applyBtn) applyBtn.onclick = applyCSV;
   const exportBtn = $('exportBtn'); if (exportBtn) exportBtn.onclick = exportExcel;
@@ -6556,7 +7145,7 @@ function bindUI() {
   const expCat = $('exportCatalogBtn');
   if (expCat) expCat.onclick = () => {
     try {
-      const data = JSON.stringify({ version: 1, products: PRODUCTS, ignored: IGNORED, aliases: ALIASES, prices: PRICES }, null, 2);
+      const data = JSON.stringify({ version: 1, products: PRODUCTS, ignored: IGNORED, aliases: ALIASES, prices: PRICES, points: _points }, null, 2);
       const blob = new Blob([data], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -6860,7 +7449,7 @@ function setRecognizeMode(mode) {
    BIND MODAL BACKDROPS
    ═══════════════════════════════════════════ */
 function bindModalBackdrops() {
-  ['catalogModal', 'unknownModal', 'ignoredModal', 'aliasesModal', 'aliasTargetModal', 'reportModal', 'noCategoryModal', 'pricesModal', 'priceEditModal', 'compareModal'].forEach(id => {
+  ['catalogModal', 'unknownModal', 'ignoredModal', 'aliasesModal', 'aliasTargetModal', 'reportModal', 'noCategoryModal', 'pricesModal', 'priceEditModal', 'compareModal', 'firstRunModal', 'pointPickerModal', 'pointsManagerModal'].forEach(id => {
     const m = $(id); if (!m) return;
     m.addEventListener('click', e => {
       if (e.target !== m) return;
@@ -6888,11 +7477,15 @@ function bindModalBackdrops() {
       else if (id === 'pricesModal') closePricesModal();
       else if (id === 'priceEditModal') closePriceEdit();
       else if (id === 'compareModal') closeCompareModal();
+      else if (id === 'firstRunModal') { /* первый запуск не закрывается тапом по фону */ }
+      else if (id === 'pointPickerModal') closeModal('pointPickerModal');
+      else if (id === 'pointsManagerModal') closeModal('pointsManagerModal');
     });
   });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      if (!$('reportModal').classList.contains('hidden')) closeReport();
+      if (!$('firstRunModal').classList.contains('hidden')) { /* не закрываем */ }
+      else if (!$('reportModal').classList.contains('hidden')) closeReport();
       else if (!$('aliasTargetModal').classList.contains('hidden')) closeAliasTargetModal();
       else if (!$('aliasesModal').classList.contains('hidden')) closeAliasesModal();
       else if (!$('unknownModal').classList.contains('hidden')) closeUnknownModal();
@@ -6902,6 +7495,8 @@ function bindModalBackdrops() {
       else if (!$('pricesModal').classList.contains('hidden')) closePricesModal();
       else if (!$('priceEditModal').classList.contains('hidden')) closePriceEdit();
       else if (!$('compareModal').classList.contains('hidden')) closeCompareModal();
+      else if (!$('pointPickerModal').classList.contains('hidden')) closeModal('pointPickerModal');
+      else if (!$('pointsManagerModal').classList.contains('hidden')) closeModal('pointsManagerModal');
       else if (!$('promptModal').classList.contains('hidden')) closeModal('promptModal');
     }
   });
@@ -6990,6 +7585,24 @@ function init() {
     const st = $('csvStatus');
     if (st) { st.className = 'status show info'; st.textContent = `Сессия восстановлена (${ageMin} мин назад).`; }
   }
+
+  /* === v9.9.0: профиль / точки / маршрут === */
+  _profile = loadProfile();
+  _points = loadPoints();
+  _activePointId = loadActivePointId();
+  _route = loadRoute();
+  ensureRouteToday();
+  if (_activePointId && !getPointById(_activePointId)) _activePointId = null;
+  if (!_activePointId && _points.length) _activePointId = _points[0].id;
+  updateHeaderPoint();
+  updateHeaderProfile();
+  updatePointsCount();
+  updateProfileInfoBlock();
+  syncActivePointToInput();
+  if (!_profile) {
+    setTimeout(() => showFirstRunModal(), 500);
+  }
+
   setActiveCategory(_activeCategory);
   renderTable();
   updateUnknownBanner();
@@ -7014,6 +7627,9 @@ function init() {
     if (e.key === IGNORED_KEY) { IGNORED = loadIgnored(); updateIgnoredCount(); updateUnknownBanner(); }
     if (e.key === ALIASES_KEY) { ALIASES = loadAliases(); updateAliasesCount(); }
     if (e.key === PRICES_KEY) { PRICES = loadPrices(); }
+    if (e.key === POINTS_KEY) { _points = loadPoints(); updateHeaderPoint(); updatePointsCount(); }
+    if (e.key === ACTIVE_POINT_KEY) { _activePointId = loadActivePointId(); updateHeaderPoint(); syncActivePointToInput(); }
+    if (e.key === PROFILE_KEY) { _profile = loadProfile(); updateHeaderProfile(); updateProfileInfoBlock(); }
   });
   window.addEventListener('beforeunload', () => {
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
@@ -7026,7 +7642,7 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.8.4 · распознавание · catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', 'v9.9.0 · profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· catalog:', PRODUCTS.length, '· ignored:', IGNORED.length, '· aliases:', ALIASES.length, '· prices:', Object.keys(PRICES).length);
 }
 
 /* ═══════════════════════════════════════════
