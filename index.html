@@ -3562,8 +3562,7 @@ async function openDayModal(day) {
         '<div class="dcc-chev">›</div>';
       if (data) {
         card.addEventListener('click', () => {
-          closeModal('dayModal');
-          setTimeout(() => openCheckDetails(data), 200);
+          openCheckDetails(data);
         });
       }
       listEl.appendChild(card);
@@ -3578,6 +3577,7 @@ function openCheckDetails(snapshot) {
   if (titleEl) titleEl.style.display = 'none';
   if (!body) return;
   body.innerHTML = '';
+  body.scrollTop = 0;
 
   const created = snapshot.createdAt ? new Date(snapshot.createdAt) : null;
   const timeLabel = created && !isNaN(created.getTime())
