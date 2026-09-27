@@ -4196,58 +4196,57 @@ async function openDayModal(day) {
 function openCheckDetails(snapshot) {
   if (!snapshot) return;
   const body = $('cdModalBody');
-  const titleEl = $('cdModalTitle');
-  if (titleEl) titleEl.style.display = 'none';
   if (!body) return;
-  body.innerHTML = '';
   body.scrollTop = 0;
 
   const created = snapshot.createdAt ? new Date(snapshot.createdAt) : null;
   const timeLabel = created && !isNaN(created.getTime())
-    ? `${String(created.getHours()).padStart(2,'0')}:${String(created.getMinutes()).padStart(2,'0')}`
+    ? String(created.getHours()).padStart(2,'0') + ':' + String(created.getMinutes()).padStart(2,'0')
     : '';
 
   const { positions, problems } = countCheckProblems(snapshot);
-
-  // Заголовок с точкой
-  const pointDiv = document.createElement('div');
-  pointDiv.className = 'cd-point';
-  pointDiv.innerHTML =
-    '<p class="cd-num">' + escapeHtml(snapshot.pointNum || '№—') + (snapshot.pointName ? ' · ' + escapeHtml(snapshot.pointName) : '') + '</p>' +
-    (snapshot.pointAddress ? '<p class="cd-addr">' + escapeHtml(snapshot.pointAddress) + '</p>' : '');
-  body.appendChild(pointDiv);
-
-  // Мета: автор + время
-  const metaDiv = document.createElement('div');
-  metaDiv.className = 'cd-meta';
-  metaDiv.innerHTML =
-    '<span>' + renderAvatar(snapshot.authorName || snapshot.authorLogin || '?', 'sm') + ' ' + escapeHtml(snapshot.authorName || snapshot.authorLogin || '—') + '</span>' +
-    (timeLabel ? '<span>🕐 ' + timeLabel + '</span>' : '') +
-    (snapshot.date ? '<span>📅 ' + escapeHtml(snapshot.date) + '</span>' : '');
-  body.appendChild(metaDiv);
-
-  // 2 больших числа
-  const statsDiv = document.createElement('div');
-  statsDiv.className = 'cd-stats';
+  const authorName = snapshot.authorName || snapshot.authorLogin || '—';
+  const authorShort = snapshot.authorName || snapshot.authorLogin || '?';
   const probsClass = problems === 0 ? 'green' : (problems >= 3 ? 'red' : 'orange');
-  statsDiv.innerHTML =
-    '<div class="cd-stat">' +
-      '<div class="cd-lbl">Позиций</div>' +
-      '<div class="cd-val">' + positions + '</div>' +
-    '</div>' +
-    '<div class="cd-stat">' +
-      '<div class="cd-lbl">Проблем</div>' +
-      '<div class="cd-val ' + probsClass + '">' + problems + '</div>' +
-    '</div>';
-  body.appendChild(statsDiv);
 
-  // Разбивка по категориям
+  let html = '';
+
+  // ── Секция 1: точка + автор ──
+  html +=
+    '<div class="sheet-section">' +
+      '<div class="sheet-section-header">' +
+        '<h2>' + escapeHtml(snapshot.pointNum || '№—') + (snapshot.pointName ? ' · ' + escapeHtml(snapshot.pointName) : '') + '</h2>' +
+        (snapshot.pointAddress ? '<p class="desc">' + escapeHtml(snapshot.pointAddress) + '</p>' : '') +
+      '</div>' +
+      '<div class="sheet-section-body">' +
+        '<div class="sheet-author">' +
+          renderAvatar(authorShort, 'sm') +
+          '<span class="name">' + escapeHtml(authorName) + '</span>' +
+          (timeLabel ? '<span class="dot-sep">·</span><span>' + timeLabel + '</span>' : '') +
+          (snapshot.date ? '<span class="dot-sep">·</span><span>' + escapeHtml(snapshot.date) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // ── Секция 2: итоги ──
+  html +=
+    '<div class="sheet-section">' +
+      '<div class="sheet-section-header">' +
+        '<h2>Итоги</h2>' +
+      '</div>' +
+      '<div class="sheet-section-body">' +
+        '<div class="sheet-stats">' +
+          '<div class="sheet-stat"><div class="lbl">Позиций</div><div class="val">' + positions + '</div></div>' +
+          '<div class="sheet-stat"><div class="lbl">Проблем</div><div class="val ' + probsClass + '">' + problems + '</div></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // ── Секция 3: по категориям ──
   const catsOrder = ['desserts', 'lunches', 'pastry'];
   const catsWithData = catsOrder.filter(c => snapshot.categories && snapshot.categories[c] && snapshot.categories[c].length);
   if (catsWithData.length) {
-    const secCat = document.createElement('div');
-    secCat.className = 'cd-section';
-    secCat.innerHTML = '<p class="cd-sec-title">По категориям</p>';
+    let catRows = '';
     for (const cat of catsWithData) {
       const items = snapshot.categories[cat] || [];
       let catProbs = 0;
@@ -4256,25 +4255,33 @@ function openCheckDetails(snapshot) {
         const sxp = it.soldExpired != null ? it.soldExpired : 0;
         if (exp > 0 || sxp > 0) catProbs++;
       }
-      const row = document.createElement('div');
-      row.className = 'cd-cat-row';
-      const probsHtml = catProbs > 0
-        ? ' <span class="warn">· ' + catProbs + ' ' + pluralize(catProbs, 'проблема', 'проблемы', 'проблем') + '</span>'
-        : '';
-      row.innerHTML =
-        '<span class="cd-cat-icon">' + (CATEGORY_EMOJI[cat] || '—') + '</span>' +
-        '<span class="cd-cat-name">' + (CATEGORY_LABELS[cat] || cat) + '</span>' +
-        '<span class="cd-cat-vals"><b>' + items.length + '</b> ' + pluralize(items.length, 'позиция', 'позиции', 'позиций') + probsHtml + '</span>';
-      secCat.appendChild(row);
+      const subText = catProbs > 0
+        ? '<span class="warn">' + catProbs + ' ' + pluralize(catProbs, 'проблема', 'проблемы', 'проблем') + '</span>'
+        : 'Всё свежее';
+      catRows +=
+        '<div class="sheet-cat-row">' +
+          '<span class="sheet-cat-icon">' + (CATEGORY_EMOJI[cat] || '—') + '</span>' +
+          '<span class="sheet-cat-body">' +
+            '<span class="sheet-cat-name">' + (CATEGORY_LABELS[cat] || cat) + '</span>' +
+            '<span class="sheet-cat-sub">' + subText + '</span>' +
+          '</span>' +
+          '<span class="sheet-cat-vals">' + items.length + ' поз.</span>' +
+        '</div>';
     }
-    body.appendChild(secCat);
+    html +=
+      '<div class="sheet-section">' +
+        '<div class="sheet-section-header">' +
+          '<h2>По категориям</h2>' +
+        '</div>' +
+        '<div class="sheet-section-body">' +
+          catRows +
+        '</div>' +
+      '</div>';
   }
 
-  // Проблемные позиции
+  // ── Секция 4: проблемные позиции ──
+  let probsBody = '';
   if (problems > 0) {
-    const secProbs = document.createElement('div');
-    secProbs.className = 'cd-section';
-    secProbs.innerHTML = '<p class="cd-sec-title">Проблемные позиции</p>';
     const problemItems = [];
     for (const cat of catsOrder) {
       const items = (snapshot.categories && snapshot.categories[cat]) || [];
@@ -4282,30 +4289,36 @@ function openCheckDetails(snapshot) {
         const exp = it.expiredOnShelf != null ? it.expiredOnShelf : 0;
         const sxp = it.soldExpired != null ? it.soldExpired : 0;
         if (exp > 0 || sxp > 0) {
-          problemItems.push({ cat, name: it.name, exp, sxp });
+          problemItems.push({ name: it.name, exp, sxp });
         }
       }
     }
     problemItems.sort((a, b) => (b.sxp + b.exp) - (a.sxp + a.exp));
     for (const p of problemItems) {
-      const row = document.createElement('div');
-      row.className = 'cd-pos-row';
       const parts = [];
       if (p.sxp > 0) parts.push('продано просрочкой: ' + p.sxp);
-      if (p.exp > 0) parts.push('просрочено на витрине: ' + p.exp);
+      if (p.exp > 0) parts.push('просрочено: ' + p.exp);
       const valCls = p.sxp > 0 ? 'danger' : 'warn';
-      row.innerHTML =
-        '<span class="cd-pos-name">' + escapeHtml(p.name) + '</span>' +
-        '<span class="cd-pos-val ' + valCls + '">' + escapeHtml(parts.join(' · ')) + '</span>';
-      secProbs.appendChild(row);
+      probsBody +=
+        '<div class="sheet-pos-row">' +
+          '<span class="sheet-pos-name">' + escapeHtml(p.name) + '</span>' +
+          '<span class="sheet-pos-val ' + valCls + '">' + escapeHtml(parts.join(' · ')) + '</span>' +
+        '</div>';
     }
-    body.appendChild(secProbs);
   } else {
-    const secProbs = document.createElement('div');
-    secProbs.className = 'cd-section';
-    secProbs.innerHTML = '<p class="cd-sec-title">Проблемные позиции</p><div class="cd-empty">Все позиции свежие. Отлично!</div>';
-    body.appendChild(secProbs);
+    probsBody = '<div class="sheet-empty">Все позиции свежие. Отлично!</div>';
   }
+  html +=
+    '<div class="sheet-section">' +
+      '<div class="sheet-section-header">' +
+        '<h2>Проблемные позиции</h2>' +
+      '</div>' +
+      '<div class="sheet-section-body">' +
+        probsBody +
+      '</div>' +
+    '</div>';
+
+  body.innerHTML = html;
 
   openModal('checkDetailsModal');
 }
