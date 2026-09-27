@@ -141,7 +141,7 @@ details.settings .content{margin-top:12px;display:flex;flex-direction:column;gap
 .banner.hidden{display:none}
 .hint{font-size:12px;color:var(--text-secondary);margin:10px 0 0;line-height:1.5}
 .hint b{color:var(--text);font-weight:600}
-.hint.version{text-align:center;color:var(--text-tertiary);margin:8px 0 0;font-size:11px;letter-spacing:.02em;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+.hint.version{text-align:center;color:var(--text-tertiary);margin:8px 0 0;font-size:11px;letter-spacing:.02em}
 .legend{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px;background:var(--bg-input);border-radius:var(--r-sm);font-size:12px;color:var(--text-secondary);margin:0 12px 12px}
 .legend-item{display:inline-flex;align-items:center;gap:5px}
 .legend-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
@@ -754,8 +754,7 @@ body[data-active-tab="check"] .check-steps{display:block}
 .cd-meta .avatar{margin-right:2px}
 
 /* v9.12.1: последняя секция вкладки тянется до таббара */
-main{display:flex;flex-direction:column;min-height:calc(100dvh - var(--header-h));padding-bottom:0}
-.section.section-stretch{flex:1 1 auto;margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;display:flex;flex-direction:column}
+main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .section.section-stretch > .section-body{flex:1 1 auto}
 .section.section-stretch > .section-header + .section-body{flex:1 1 auto}
 </style>
@@ -1168,7 +1167,7 @@ main{display:flex;flex-direction:column;min-height:calc(100dvh - var(--header-h)
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.12.2 · откат блокировки</div>
+  <div class="hint version">French Bakery Аудит · v9.12.4 · секции по содержимому</div>
 
 </main>
 
@@ -1653,7 +1652,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.12.2';
+const APP_VERSION = 'v9.12.4';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -9181,11 +9180,6 @@ function init() {
    ═══════════════════════════════════════════ */
 const VALID_TABS = ['home', 'check', 'catalog', 'history'];
 
-function stretchLastSection(tab) {
-  document.querySelectorAll('main > .section').forEach(s => s.classList.remove('section-stretch'));
-  const list = document.querySelectorAll('main > .section[data-tab="' + tab + '"]');
-  if (list.length) list[list.length - 1].classList.add('section-stretch');
-}
 function setActiveTab(tab) {
   if (!VALID_TABS.includes(tab)) tab = 'home';
   document.body.dataset.activeTab = tab;
@@ -9195,7 +9189,6 @@ function setActiveTab(tab) {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
   }
-  stretchLastSection(tab);
   try { localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch (e) {}
   // При переходе на «Проверку» — обновить индикатор шагов
   if (tab === 'check' && typeof renderCheckSteps === 'function') {
