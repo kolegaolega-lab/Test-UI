@@ -4055,20 +4055,23 @@ async function openDayModal(day) {
   const monthRu = MONTH_NAMES_RU[parseInt(mStr,10)-1].toLowerCase();
   const dayTitle = `${day} ${monthRu} ${yStr}`;
 
-  const titleEl = $('dayModalTitle');
-  const subEl = $('dayModalSubtitle');
-  const summaryEl = $('dayModalSummary');
-  const listEl = $('dayModalList');
-  if (titleEl) titleEl.textContent = dayTitle;
-  if (subEl) subEl.textContent = '';
-  if (summaryEl) { summaryEl.style.display = 'none'; summaryEl.innerHTML = ''; }
-  if (listEl) listEl.innerHTML = '<div class="cd-loading">Загружаю проверки…</div>';
+  const body = $('dayModalBody');
+  if (!body) return;
+  body.innerHTML = '<div class="sheet-loading">Загружаю проверки…</div>';
 
   openModal('dayModal');
 
   if (!files.length) {
-    if (subEl) subEl.textContent = 'Проверок не было';
-    if (listEl) listEl.innerHTML = '<div class="cd-empty">Никто из аудиторов не отмечался в этот день.</div>';
+    body.innerHTML =
+      '<div class="sheet-section">' +
+        '<div class="sheet-section-header">' +
+          '<h2>' + escapeHtml(dayTitle) + '</h2>' +
+          '<p class="desc">Проверок не было</p>' +
+        '</div>' +
+        '<div class="sheet-section-body">' +
+          '<div class="sheet-empty">Никто из аудиторов не отмечался в этот день.</div>' +
+        '</div>' +
+      '</div>';
     return;
   }
 
@@ -4105,67 +4108,89 @@ async function openDayModal(day) {
 
   const authorList = [...authors].join(', ');
   const pointsCount = points.size;
-  if (subEl) {
-    subEl.textContent = `${contents.length} ${pluralize(contents.length, 'проверка', 'проверки', 'проверок')} · ${pointsCount} ${pluralize(pointsCount, 'точка', 'точки', 'точек')}`;
-  }
-  if (summaryEl) {
-    summaryEl.style.display = 'block';
-    let summ = '';
-    if (totalProblems === 0) {
-      summ = `<span class="big">${totalPositions} позиций · всё свежее</span>`;
+
+  // ── Секция 1: заголовок + сводка ──
+  const subtitle = contents.length + ' ' + pluralize(contents.length, 'проверка', 'проверки', 'проверок') +
+                   ' · ' + pointsCount + ' ' + pluralize(pointsCount, 'точка', 'точки', 'точек');
+  const bigText = totalProblems === 0
+    ? (totalPositions + ' позиций · всё свежее')
+    : (totalPositions + ' позиций · ' + totalProblems + ' ' + pluralize(totalProblems, 'проблема', 'проблемы', 'проблем'));
+
+  let html =
+    '<div class="sheet-section">' +
+      '<div class="sheet-section-header">' +
+        '<h2>' + escapeHtml(dayTitle) + '</h2>' +
+        '<p class="desc">' + escapeHtml(subtitle) + '</p>' +
+      '</div>' +
+      '<div class="sheet-section-body">' +
+        '<div class="sheet-summary">' +
+          '<span class="big">' + escapeHtml(bigText) + '</span>' +
+          'Проверили: <b>' + escapeHtml(authorList || '—') + '</b>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // ── Секция 2: список проверок ──
+  const myLogin = _profile && _profile.login ? _profile.login : '';
+  let cardsHtml = '';
+  for (const c of contents) {
+    const f = c.file;
+    const data = c.data;
+    let numText = '';
+    let authorName = '';
+    let subText = '';
+    let isMine = false;
+    const timeText = f.timeHH + ':' + f.timeMM;
+    if (data) {
+      numText = data.pointNum || '№—';
+      authorName = data.authorName || data.authorLogin || f.login || '';
+      const { positions, problems } = countCheckProblems(data);
+      subText = escapeHtml(authorName) + ' <span class="dot-sep">·</span> ' + positions + ' позиций';
+      if (problems > 0) subText += ' <span class="dot-sep">·</span> <span class="danger">' + problems + ' ' + pluralize(problems, 'проблема', 'проблемы', 'проблем') + '</span>';
+      else subText += ' <span class="dot-sep">·</span> <span class="ok">без проблем</span>';
+      isMine = (myLogin && f.login === myLogin) || false;
     } else {
-      summ = `<span class="big">${totalPositions} позиций · ${totalProblems} ${pluralize(totalProblems, 'проблема', 'проблемы', 'проблем')}</span>`;
+      numText = f.pointId || '№—';
+      authorName = f.login || '';
+      subText = escapeHtml(f.login) + ' <span class="dot-sep">·</span> <span class="warn">не удалось загрузить</span>';
     }
-    summ += `Проверили: <b>${escapeHtml(authorList || '—')}</b>`;
-    summaryEl.innerHTML = summ;
+    const youBadge = isMine ? ' <span class="you">Вы</span>' : '';
+    cardsHtml +=
+      '<button type="button" class="sheet-card" data-fname="' + escapeHtml(f.filename) + '">' +
+        renderAvatar(authorName, 'lg') +
+        '<span class="sc-body">' +
+          '<span class="sc-name">' + escapeHtml(numText) + youBadge + '</span>' +
+          '<span class="sc-sub">' + subText + '</span>' +
+        '</span>' +
+        '<span class="sc-time">' + escapeHtml(timeText) + '</span>' +
+      '</button>';
   }
 
-  if (listEl) {
-    listEl.innerHTML = '';
-    const myLogin = _profile && _profile.login ? _profile.login : '';
-    for (const c of contents) {
-      const f = c.file;
-      const data = c.data;
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'day-check-card';
-      let numText = '';
-      let nameText = '';
-      let metaText = '';
-      let timeText = f.timeHH + ':' + f.timeMM;
-      let isMine = false;
-      let authorName = '';
-      if (data) {
-        numText = data.pointNum || '№—';
-        nameText = data.pointName || data.pointAddress || '';
-        authorName = data.authorName || data.authorLogin || f.login || '';
-        const { positions, problems } = countCheckProblems(data);
-        metaText = `${escapeHtml(authorName)} <span class="dot-sep">·</span> ${positions} позиций`;
-        if (problems > 0) metaText += ` <span class="dot-sep">·</span> <span class="danger">${problems} ${pluralize(problems, 'проблема', 'проблемы', 'проблем')}</span>`;
-        else metaText += ` <span class="dot-sep">·</span> <span class="ok">без проблем</span>`;
-        isMine = (myLogin && f.login === myLogin) || false;
-      } else {
-        numText = f.pointId || '№—';
-        authorName = f.login || '';
-        metaText = `${escapeHtml(f.login)} <span class="dot-sep">·</span> <span class="warn">не удалось загрузить</span>`;
-      }
-      card.innerHTML =
-        renderAvatar(authorName, 'lg') +
-        '<div class="dcc-body">' +
-          '<div class="dcc-num">' + escapeHtml(numText) + (isMine ? ' <span class="dcc-you">Вы</span>' : '') + '</div>' +
-          (nameText ? '<div class="dcc-name">' + escapeHtml(nameText) + '</div>' : '') +
-          '<div class="dcc-meta">' + metaText + '</div>' +
-        '</div>' +
-        '<div class="dcc-time">' + escapeHtml(timeText) + '</div>' +
-        '<div class="dcc-chev">›</div>';
-      if (data) {
-        card.addEventListener('click', () => {
-          openCheckDetails(data);
-        });
-      }
-      listEl.appendChild(card);
+  html +=
+    '<div class="sheet-section">' +
+      '<div class="sheet-section-header">' +
+        '<h2>Проверки дня</h2>' +
+      '</div>' +
+      '<div class="sheet-section-body">' +
+        cardsHtml +
+      '</div>' +
+    '</div>';
+
+  body.innerHTML = html;
+
+  // Обработчики тапа по карточкам
+  body.querySelectorAll('.sheet-card').forEach(card => {
+    const fname = card.dataset.fname;
+    const found = contents.find(c => c.file.filename === fname);
+    if (found && found.data) {
+      card.addEventListener('click', () => {
+        openCheckDetails(found.data);
+      });
+    } else {
+      card.style.opacity = '0.6';
+      card.style.cursor = 'default';
     }
-  }
+  });
 }
 
 function openCheckDetails(snapshot) {
