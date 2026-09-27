@@ -53,6 +53,10 @@ body{
   letter-spacing:-.005em;
 }
 body.modal-open{overflow:hidden}
+html.modal-open,html.modal-open body{overflow:hidden;height:100%}
+.modal{touch-action:none}
+.modal .modal-body{touch-action:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.modal .day-list{touch-action:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .app-header{
   position:sticky;top:0;z-index:100;
   padding:11px var(--page-pad);
@@ -751,6 +755,12 @@ body[data-active-tab="check"] .check-steps{display:block}
 
 /* В деталях проверки: автор рядом с именем */
 .cd-meta .avatar{margin-right:2px}
+
+/* v9.12.1: последняя секция вкладки тянется до таббара */
+main{display:flex;flex-direction:column;min-height:calc(100dvh - var(--header-h));padding-bottom:0}
+.section.section-stretch{flex:1 1 auto;margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;display:flex;flex-direction:column}
+.section.section-stretch > .section-body{flex:1 1 auto}
+.section.section-stretch > .section-header + .section-body{flex:1 1 auto}
 </style>
 </head>
 <body>
@@ -1768,11 +1778,36 @@ let _historyContentCache = {}; // { 'YYYY-MM/filename.json': {data, ts} }
    ═══════════════════════════════════════════ */
 const $ = id => { try { return document.getElementById(id); } catch (e) { return null; } };
 
+function lockBodyScroll() {
+  if (document.body.dataset.scrollLocked === '1') return;
+  const y = window.scrollY || window.pageYOffset || 0;
+  document.body.dataset.scrollLocked = '1';
+  document.body.dataset.scrollY = String(y);
+  document.body.style.position = 'fixed';
+  document.body.style.top = '-' + y + 'px';
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+}
+function unlockBodyScroll() {
+  if (document.body.dataset.scrollLocked !== '1') return;
+  const y = parseInt(document.body.dataset.scrollY || '0', 10) || 0;
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  delete document.body.dataset.scrollLocked;
+  delete document.body.dataset.scrollY;
+  window.scrollTo(0, y);
+}
 function openModal(id) {
   const el = $(id);
   if (!el) return;
   document.body.style.overflow = 'hidden';
   document.body.classList.add('modal-open');
+  document.documentElement.classList.add('modal-open');
+  lockBodyScroll();
   el.classList.remove('hidden');
 }
 function closeModal(id) {
@@ -1783,6 +1818,8 @@ function closeModal(id) {
   if (!anyOpen) {
     document.body.style.overflow = '';
     document.body.classList.remove('modal-open');
+    document.documentElement.classList.remove('modal-open');
+    unlockBodyScroll();
   }
 }
 function clampNum(v, min, max, fallback) {
@@ -9174,6 +9211,11 @@ function init() {
    ═══════════════════════════════════════════ */
 const VALID_TABS = ['home', 'check', 'catalog', 'history'];
 
+function stretchLastSection(tab) {
+  document.querySelectorAll('main > .section').forEach(s => s.classList.remove('section-stretch'));
+  const list = document.querySelectorAll('main > .section[data-tab="' + tab + '"]');
+  if (list.length) list[list.length - 1].classList.add('section-stretch');
+}
 function setActiveTab(tab) {
   if (!VALID_TABS.includes(tab)) tab = 'home';
   document.body.dataset.activeTab = tab;
@@ -9183,6 +9225,7 @@ function setActiveTab(tab) {
       btn.classList.toggle('active', btn.dataset.tab === tab);
     });
   }
+  stretchLastSection(tab);
   try { localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch (e) {}
   // При переходе на «Проверку» — обновить индикатор шагов
   if (tab === 'check' && typeof renderCheckSteps === 'function') {
