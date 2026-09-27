@@ -690,6 +690,23 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
 .route-card.active .route-remove:active{background:rgba(255,255,255,.15)}
 .route-empty{padding:32px 16px;text-align:center;font-size:13px;color:var(--text-tertiary);line-height:1.5;background:var(--bg-card);border:1px dashed var(--separator-opaque);border-radius:14px;margin-bottom:10px}
 .route-empty b{display:block;color:var(--text-secondary);font-weight:600;margin-bottom:6px;font-size:13.5px}
+
+/* ═══════════════════════════════════════════
+   v9.11.0 — Пошаговый воркфлоу «Проверка» (Сессия 6)
+   ═══════════════════════════════════════════ */
+.check-steps{background:var(--bg-card);border:1px solid var(--separator);border-radius:14px;margin-bottom:10px;padding:12px 10px 10px}
+.check-steps-track{display:flex;align-items:flex-start;justify-content:space-between;position:relative;padding:0 4px}
+.check-steps-track::before{content:'';position:absolute;left:14%;right:14%;top:14px;height:2px;background:var(--separator-opaque);z-index:0}
+.check-step{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;z-index:1;background:transparent;border:0;padding:0;cursor:pointer;font-family:inherit}
+.check-step:active{opacity:.7}
+.check-step .cs-dot{width:28px;height:28px;border-radius:50%;background:var(--bg-card);border:2px solid var(--separator-opaque);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-secondary);transition:all .2s;line-height:1}
+.check-step.done .cs-dot{background:var(--green);border-color:var(--green);color:#fff}
+.check-step.active .cs-dot{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accent-soft)}
+.check-step .cs-label{font-size:9.5px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.04em;text-align:center;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.check-step.active .cs-label{color:var(--accent)}
+.check-step.done .cs-label{color:var(--green)}
+.step-hint{font-size:12px;color:var(--text-secondary);line-height:1.4;margin:10px 4px 0;padding:10px 12px;background:var(--bg-input);border-radius:9px;text-align:center}
+.step-hint b{color:var(--text);font-weight:600}
 </style>
 </style>
 </head>
@@ -763,10 +780,37 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
     </div>
   </div>
 
+  <!-- ═══════════════ v9.11.0: Индикатор шагов ═══════════════ -->
+  <div class="check-steps" id="checkStepsWrap" data-tab="check">
+    <div class="check-steps-track" id="checkStepsTrack">
+      <button type="button" class="check-step active" data-step="1">
+        <span class="cs-dot">1</span>
+        <span class="cs-label">Категория</span>
+      </button>
+      <button type="button" class="check-step" data-step="2">
+        <span class="cs-dot">2</span>
+        <span class="cs-label">Материалы</span>
+      </button>
+      <button type="button" class="check-step" data-step="3">
+        <span class="cs-dot">3</span>
+        <span class="cs-label">Распознать</span>
+      </button>
+      <button type="button" class="check-step" data-step="4">
+        <span class="cs-dot">4</span>
+        <span class="cs-label">Остатки</span>
+      </button>
+      <button type="button" class="check-step" data-step="5">
+        <span class="cs-dot">5</span>
+        <span class="cs-label">Финиш</span>
+      </button>
+    </div>
+    <div class="step-hint" id="stepHint">Выберите категорию и загрузите материалы.</div>
+  </div>
+
   <!-- ═══════════════ Материалы для проверки ═══════════════ -->
-  <div class="section" data-tab="check">
+  <div class="section" data-tab="check" id="materialsSection">
     <div class="section-header">
-      <h2>Материалы для проверки</h2>
+      <h2>Шаг 1 · Категория и материалы</h2>
       <p class="desc">Фото или PDF накладных и чека продаж.</p>
     </div>
     <div class="section-body">
@@ -793,9 +837,9 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
   </div>
 
   <!-- ═══════════════ Распознавание (ОБЪЕДИНЁННАЯ) ═══════════════ -->
-  <div class="section" data-tab="check">
+  <div class="section" data-tab="check" id="recognizeSection">
     <div class="section-header">
-      <h2>Распознавание</h2>
+      <h2>Шаг 2 · Распознавание</h2>
       <p class="desc">Отправьте фото в ИИ — он вернёт CSV с приходами и продажами.</p>
     </div>
     <div class="section-body">
@@ -873,9 +917,9 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
   </div>
 
   <!-- ═══════════════ Импорт данных ═══════════════ -->
-  <div class="section" data-tab="check">
+  <div class="section" data-tab="check" id="importSection">
     <div class="section-header">
-      <h2>Импорт данных</h2>
+      <h2>Шаг 3 · Импорт CSV</h2>
       <p class="desc">Вставьте CSV, который вернул ИИ, или загрузите файл.</p>
     </div>
     <div class="section-body">
@@ -948,9 +992,9 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
   </div>
 
   <!-- ═══════════════ Результат ═══════════════ -->
-  <div class="section" data-tab="check">
+  <div class="section" data-tab="check" id="resultSection">
     <div class="section-header">
-      <h2>Результат</h2>
+      <h2>Шаг 4 · Остатки и результат</h2>
       <p id="summary" class="desc">Загрузите CSV и введите фактический остаток.</p>
     </div>
 
@@ -1064,7 +1108,7 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.10.1 · маршрут + сводка</div>
+  <div class="hint version">French Bakery Аудит · v9.11.0 · пошаговая проверка</div>
 
 </main>
 
@@ -1546,7 +1590,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.10.1';
+const APP_VERSION = 'v9.11.0';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1653,6 +1697,7 @@ let _points = [];
 let _activePointId = null;
 let _route = null;
 let _pointPickerMode = null; // null | 'add-to-route'
+let _photoCount = 0;
 
 /* === v9.9.1: синхронизация истории === */
 let _historyCache = {};
@@ -2725,6 +2770,8 @@ async function renderPhotoQueue() {
   const box = $('photoQueue');
   if (!box) return;
   const items = await getPhotos();
+  _photoCount = items.length;
+  if (typeof renderCheckSteps === 'function') renderCheckSteps();
   if (!items.length) { box.innerHTML = '<div class="hint">Загружено: <b>0 файлов</b></div>'; return; }
   box.innerHTML = '';
   const count = document.createElement('div');
@@ -4320,6 +4367,7 @@ function createResetIcon() {
 function updateFinishCheckBtn() {
   const wrap = $('finishCheckWrap'); if (!wrap) return;
   wrap.style.display = (Array.isArray(tableRows) && tableRows.length) ? 'block' : 'none';
+  if (typeof renderCheckSteps === 'function') renderCheckSteps();
 }
 function renderTable() {
   if (isRendering) return;
@@ -5704,6 +5752,7 @@ async function applyCSV() {
     try { await clearAllPhotos(); } catch (e) {}
     await renderPhotoQueue();
     setActiveCategory(null);
+    if (typeof renderCheckSteps === 'function') renderCheckSteps();
 
     const salesOnlyMode = rows.every(r => r.salesOnly);
     const validDates = new Set();
@@ -7271,6 +7320,7 @@ function setActiveCategory(cat) {
       btn.classList.toggle('active', btn.dataset.cat === cat);
     });
   }
+  if (typeof renderCheckSteps === 'function') renderCheckSteps();
   scheduleSessionSave();
 }
 function bindCategoryGrid() {
@@ -8284,6 +8334,9 @@ function bindUI() {
   const routeAddBtn = $('routeAddBtn');
   if (routeAddBtn) routeAddBtn.onclick = () => openPointPicker('add-to-route');
 
+  /* === v9.11.0: индикатор шагов === */
+  bindCheckSteps();
+
   /* === v9.9.0: профиль === */
   const resetProfileBtn = $('resetProfileBtn');
   if (resetProfileBtn) resetProfileBtn.onclick = () => {
@@ -8980,6 +9033,7 @@ function init() {
 
   setActiveCategory(_activeCategory);
   setActiveTab(loadActiveTab());
+  renderCheckSteps();
   renderTable();
   updateUnknownBanner();
   updateNoCategoryBanner();
@@ -9052,7 +9106,7 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', APP_VERSION + ' · tab:', document.body.dataset.activeTab, '· profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· route:', _route ? _route.pointIds.length : 0, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', APP_VERSION + ' · tab:', document.body.dataset.activeTab, '· step:', computeCheckStep(), '· profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· route:', _route ? _route.pointIds.length : 0, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
 }
 
 /* ═══════════════════════════════════════════
@@ -9070,6 +9124,10 @@ function setActiveTab(tab) {
     });
   }
   try { localStorage.setItem(ACTIVE_TAB_KEY, tab); } catch (e) {}
+  // При переходе на «Проверку» — обновить индикатор шагов
+  if (tab === 'check' && typeof renderCheckSteps === 'function') {
+    renderCheckSteps();
+  }
   // При возврате на вкладку «График» — тихо обновить календарь, если давно не читали
   if (tab === 'history' && _profile && _profile.token && _calendarMonth) {
     const lastFetch = _historyCache[_calendarMonth] && _historyCache[_calendarMonth].fetchedAt;
@@ -9156,6 +9214,74 @@ function bindFab() {
     closeFabMenu();
     setActiveTab('check');
     setTimeout(() => { if (invInput) invInput.click(); }, 150);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   v9.11.0 — ИНДИКАТОР ШАГОВ «ПРОВЕРКИ»
+   ═══════════════════════════════════════════ */
+function computeCheckStep() {
+  if (!_activeCategory) return 1;
+  if (!_photoCount && !tableRows.length) return 2;
+  if (_photoCount && !tableRows.length) return 3;
+  if (tableRows.length) {
+    const hasStock = tableRows.some(r => r.stock != null && r.stock > 0);
+    if (!hasStock) return 4;
+    return 5;
+  }
+  return 3;
+}
+function renderCheckSteps() {
+  const track = $('checkStepsTrack');
+  const hintEl = $('stepHint');
+  if (!track) return;
+
+  const current = computeCheckStep();
+  const steps = track.querySelectorAll('.check-step');
+  steps.forEach(btn => {
+    const n = parseInt(btn.dataset.step, 10);
+    btn.classList.remove('active', 'done');
+    if (n < current) btn.classList.add('done');
+    else if (n === current) btn.classList.add('active');
+  });
+
+  if (hintEl) {
+    const hints = {
+      1: 'Выберите категорию и загрузите фото накладных или чека.',
+      2: 'Отправьте материалы в ИИ — он вернёт CSV с приходами и продажами.',
+      3: 'Вставьте CSV от ИИ или загрузите из файла.',
+      4: 'Введите фактический остаток — приложение посчитает просрочку.',
+      5: 'Проверка готова. Нажмите «Завершить проверку» и отправьте в историю.'
+    };
+    const key = current <= 4 ? current : 5;
+    hintEl.innerHTML = '<b>Шаг ' + key + '.</b> ' + (hints[key] || '');
+  }
+}
+function scrollToCheckStep(n) {
+  let el = null;
+  if (n === 1) el = $('materialsSection');
+  else if (n === 2) el = $('recognizeSection');
+  else if (n === 3) el = $('importSection');
+  else if (n === 4 || n === 5) el = $('resultSection');
+  if (!el) return;
+  try {
+    const header = $('appHeader');
+    const headerH = header ? header.getBoundingClientRect().height : 58;
+    const rect = el.getBoundingClientRect();
+    const top = window.pageYOffset + rect.top - headerH - 12;
+    window.scrollTo({ top, behavior: 'smooth' });
+  } catch (e) {
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e2) {}
+  }
+}
+function bindCheckSteps() {
+  const track = $('checkStepsTrack');
+  if (!track) return;
+  track.querySelectorAll('.check-step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const n = parseInt(btn.dataset.step, 10);
+      scrollToCheckStep(n);
+    });
   });
 }
 
