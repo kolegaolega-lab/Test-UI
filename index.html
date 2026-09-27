@@ -760,20 +760,14 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .section.section-stretch > .section-header + .section-body{flex:1 1 auto}
 
 /* ═══════════════════════════════════════════
-   v9.13.0 — Строки вкладки «Ещё»
+   v9.13.1 — Вкладка «Ещё» в стиле v6
    ═══════════════════════════════════════════ */
-.more-group{padding:4px 0;border-bottom:1px solid var(--separator)}
-.more-group:first-child{padding-top:8px}
-.more-group:last-child{border-bottom:0;padding-bottom:8px}
-.more-group-title{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;padding:8px 16px 4px}
-.more-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:transparent;border:0;width:100%;text-align:left;color:var(--text);font-family:inherit;font-size:14.5px;font-weight:500;cursor:pointer;min-height:auto;border-radius:0;white-space:normal;transition:background .12s}
-.more-row:active{background:var(--bg-input)}
-.more-icon{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto;line-height:1;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Emoji","Apple Color Emoji",sans-serif}
-.more-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-.more-label{font-size:14.5px;font-weight:500;line-height:1.3;color:var(--text)}
-.more-sub{font-size:11.5px;color:var(--text-secondary);line-height:1.3}
-.more-value{font-size:13px;color:var(--text-secondary);flex:0 0 auto;font-variant-numeric:tabular-nums;padding-right:2px}
-.more-chev{color:var(--text-tertiary);font-size:18px;font-weight:400;flex:0 0 auto;line-height:1}
+.list-row{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--separator);background:transparent;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;font-family:inherit;color:var(--text);cursor:pointer;font-size:14.5px;min-height:auto;border-radius:0;white-space:normal}
+.list-row:last-child{border-bottom:0}
+.list-row:active{background:var(--bg-input)}
+.list-row .lname{flex:1;min-width:0;font-size:14.5px;font-weight:500;line-height:1.3;color:var(--text)}
+.list-row .lval{color:var(--text-secondary);font-size:13px;flex:0 0 auto;font-variant-numeric:tabular-nums;max-width:45%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-row .chev{color:var(--text-tertiary);font-size:18px;font-weight:300;flex:0 0 auto;line-height:1}
 </style>
 </head>
 <body>
@@ -990,89 +984,85 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
   </div>
 
-  <!-- ═══════════════ Ещё (бывший Справочник) ═══════════════ -->
+  <!-- ═══════════════ Ещё ═══════════════ -->
   <div class="section" data-tab="catalog">
-    <div class="section-body" style="padding:0">
+    <div class="section-header">
+      <h2>Профиль и команда</h2>
+      <p class="desc">Имя, токен, коллеги.</p>
+    </div>
+    <div class="section-body" style="padding:4px 12px">
+      <button type="button" class="list-row" data-action="open-profile">
+        <span class="lname">👤 Мой профиль</span>
+        <span class="lval" id="moreProfileSub">—</span>
+        <span class="chev">›</span>
+      </button>
+      <button type="button" class="list-row" data-action="open-auditors">
+        <span class="lname">👥 Аудиторы</span>
+        <span class="lval">5</span>
+        <span class="chev">›</span>
+      </button>
+    </div>
+  </div>
 
-      <!-- Группа: Профиль и команда -->
-      <div class="more-group">
-        <div class="more-group-title">Профиль и команда</div>
-        <button type="button" class="more-row" data-action="open-profile">
-          <span class="more-icon" style="background:var(--accent-soft);color:var(--accent)">👤</span>
-          <span class="more-body">
-            <span class="more-label">Мой профиль</span>
-            <span class="more-sub" id="moreProfileSub">—</span>
-          </span>
-          <span class="more-value"></span>
-          <span class="more-chev">›</span>
-        </button>
-        <button type="button" class="more-row" data-action="open-auditors">
-          <span class="more-icon" style="background:var(--purple-soft);color:var(--purple)">👥</span>
-          <span class="more-body">
-            <span class="more-label">Аудиторы</span>
-          </span>
-          <span class="more-value">5</span>
-          <span class="more-chev">›</span>
-        </button>
-      </div>
+  <div class="section" data-tab="catalog">
+    <div class="section-header">
+      <h2>Справочники</h2>
+      <p class="desc">Позиции, точки, цены.</p>
+    </div>
+    <div class="section-body" style="padding:4px 12px">
+      <button type="button" class="list-row" data-action="open-catalog">
+        <span class="lname">📚 Справочник</span>
+        <span class="lval" id="moreCatalogCount">0</span>
+        <span class="chev">›</span>
+      </button>
+      <button type="button" class="list-row" data-action="open-points">
+        <span class="lname">📍 Точки</span>
+        <span class="lval" id="pointsCount">0</span>
+        <span class="chev">›</span>
+      </button>
+      <button type="button" class="list-row" data-action="open-prices">
+        <span class="lname">₽ Цены позиций</span>
+        <span class="lval" id="morePricesCount">0</span>
+        <span class="chev">›</span>
+      </button>
+    </div>
+  </div>
 
-      <!-- Группа: Справочники -->
-      <div class="more-group">
-        <div class="more-group-title">Справочники</div>
-        <button type="button" class="more-row" data-action="open-catalog">
-          <span class="more-icon" style="background:var(--green-soft);color:var(--green)">📚</span>
-          <span class="more-body"><span class="more-label">Справочник</span></span>
-          <span class="more-value" id="moreCatalogCount">0</span>
-          <span class="more-chev">›</span>
-        </button>
-        <button type="button" class="more-row" data-action="open-points">
-          <span class="more-icon" style="background:var(--orange-soft);color:var(--orange)">📍</span>
-          <span class="more-body"><span class="more-label">Точки</span></span>
-          <span class="more-value" id="pointsCount">0</span>
-          <span class="more-chev">›</span>
-        </button>
-        <button type="button" class="more-row" data-action="open-prices">
-          <span class="more-icon" style="background:var(--red-soft);color:var(--red)">₽</span>
-          <span class="more-body"><span class="more-label">Цены позиций</span></span>
-          <span class="more-value" id="morePricesCount">0</span>
-          <span class="more-chev">›</span>
-        </button>
-      </div>
+  <div class="section" data-tab="catalog">
+    <div class="section-header">
+      <h2>Инструменты</h2>
+      <p class="desc">Алиасы, игнор-лист, синхронизация.</p>
+    </div>
+    <div class="section-body" style="padding:4px 12px">
+      <button type="button" class="list-row" data-action="open-aliases" id="moreAliasesRow" style="display:none">
+        <span class="lname">⇄ Алиасы</span>
+        <span class="lval" id="aliasesCount">0</span>
+        <span class="chev">›</span>
+      </button>
+      <button type="button" class="list-row" data-action="open-ignored">
+        <span class="lname">∅ Игнор-лист</span>
+        <span class="lval" id="ignoredCount">0</span>
+        <span class="chev">›</span>
+      </button>
+      <button type="button" class="list-row" data-action="open-sync">
+        <span class="lname">🔄 Настройки синхронизации</span>
+        <span class="lval"></span>
+        <span class="chev">›</span>
+      </button>
+    </div>
+  </div>
 
-      <!-- Группа: Инструменты -->
-      <div class="more-group">
-        <div class="more-group-title">Инструменты</div>
-        <button type="button" class="more-row" data-action="open-aliases" id="moreAliasesRow" style="display:none">
-          <span class="more-icon" style="background:var(--blue);color:#fff">⇄</span>
-          <span class="more-body"><span class="more-label">Алиасы</span></span>
-          <span class="more-value" id="aliasesCount">0</span>
-          <span class="more-chev">›</span>
-        </button>
-        <button type="button" class="more-row" data-action="open-ignored">
-          <span class="more-icon" style="background:var(--bg-elev-2);color:var(--text-secondary)">∅</span>
-          <span class="more-body"><span class="more-label">Игнор-лист</span></span>
-          <span class="more-value" id="ignoredCount">0</span>
-          <span class="more-chev">›</span>
-        </button>
-        <button type="button" class="more-row" data-action="open-sync">
-          <span class="more-icon" style="background:var(--purple-soft);color:var(--purple)">🔄</span>
-          <span class="more-body"><span class="more-label">Настройки синхронизации</span></span>
-          <span class="more-value"></span>
-          <span class="more-chev">›</span>
-        </button>
-      </div>
-
-      <!-- Группа: Приложение -->
-      <div class="more-group">
-        <div class="more-group-title">Приложение</div>
-        <button type="button" class="more-row" data-action="open-about">
-          <span class="more-icon" style="background:var(--bg-elev-2);color:var(--text-secondary)">ℹ️</span>
-          <span class="more-body"><span class="more-label">О приложении</span></span>
-          <span class="more-value" id="moreAppVersion">v9.13.0</span>
-          <span class="more-chev">›</span>
-        </button>
-      </div>
-
+  <div class="section" data-tab="catalog">
+    <div class="section-header">
+      <h2>Приложение</h2>
+      <p class="desc">Версия и справка.</p>
+    </div>
+    <div class="section-body" style="padding:4px 12px">
+      <button type="button" class="list-row" data-action="open-about">
+        <span class="lname">ℹ️ О приложении</span>
+        <span class="lval" id="moreAppVersion">v9.13.0</span>
+        <span class="chev">›</span>
+      </button>
     </div>
   </div>
 
@@ -8423,7 +8413,7 @@ function openAbout() {
 }
 
 function bindMoreRows() {
-  document.querySelectorAll('.more-row').forEach(row => {
+  document.querySelectorAll('.list-row[data-action]').forEach(row => {
     row.addEventListener('click', () => {
       const action = row.dataset.action;
       if (!action) return;
