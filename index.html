@@ -764,6 +764,11 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .row-cat input.pill[readonly],
 .row-cat input.pill:disabled{color:var(--text-secondary);background:var(--bg-input);border-color:var(--separator);opacity:1;cursor:default}
 .cat-cycle:disabled{opacity:.55;cursor:default}
+
+/* v9.14.0: если последняя строка скрыта — у предыдущей убираем разделитель */
+.section-body > .list-row[style*="display:none"]:last-child + .list-row,
+.list-row:has(+ .list-row[style*="display:none"]):last-of-type,
+.list-row[style*="display:none"] ~ .list-row:last-of-type{border-bottom:0}
 </style>
 </head>
 <body>
@@ -8405,6 +8410,7 @@ function renderMoreCounts() {
   if (priceEl) priceEl.textContent = String(Object.keys(PRICES).length);
   const priceRow = $('morePricesRow');
   if (priceRow) priceRow.style.display = _isOwner ? 'flex' : 'none';
+  updateMoreLastRowBorders();
   const ignEl = $('ignoredCount');
   if (ignEl) ignEl.textContent = String(IGNORED.length);
   const aliEl = $('aliasesCount');
@@ -8424,6 +8430,17 @@ function renderMoreCounts() {
   }
   const aliRow = $('moreAliasesRow');
   if (aliRow) aliRow.style.display = _isOwner ? 'flex' : 'none';
+}
+
+function updateMoreLastRowBorders() {
+  document.querySelectorAll('.section[data-tab="catalog"] .section-body').forEach(body => {
+    const rows = [...body.querySelectorAll('.list-row')];
+    rows.forEach(r => r.style.borderBottom = '');
+    const visible = rows.filter(r => r.style.display !== 'none');
+    if (visible.length) {
+      visible[visible.length - 1].style.borderBottom = '0';
+    }
+  });
 }
 
 function openSyncSettings() {
