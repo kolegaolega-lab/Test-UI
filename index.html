@@ -643,6 +643,49 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
 .fab-menu-item:last-child{border-bottom:0}
 .fab-menu-item:active{background:var(--bg-input)}
 .fab-menu-item .fm-icon{font-size:20px;line-height:1;flex:0 0 auto;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Emoji","Apple Color Emoji",sans-serif}
+
+/* ═══════════════════════════════════════════
+   v9.10.0 — Сегодня + маршрут дня (Сессия 4)
+   ═══════════════════════════════════════════ */
+.today-wrap{padding:14px 4px 4px}
+.today-greet{display:flex;flex-direction:column;gap:2px;margin-bottom:16px}
+.today-greet .hi{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.15;margin:0;color:var(--text)}
+.today-greet .sub{font-size:13px;color:var(--text-secondary);margin:0}
+
+.today-route-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 4px 10px}
+.today-route-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary);margin:0}
+.today-route-add{background:var(--accent-soft);color:var(--accent);border:0;font-size:12px;font-weight:700;padding:6px 12px;border-radius:99px;font-family:inherit;cursor:pointer;letter-spacing:.02em;min-height:auto;white-space:nowrap}
+.today-route-add:active{opacity:.7}
+
+.route-card{background:var(--bg-card);border:1px solid var(--separator);border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:transform .15s,background .15s;position:relative;overflow:hidden;box-shadow:0 .5px 0 rgba(0,0,0,.02),0 1px 3px rgba(0,0,0,.03)}
+@media (prefers-color-scheme:dark){.route-card{box-shadow:0 .5px 0 rgba(255,255,255,.02),0 1px 3px rgba(0,0,0,.25)}}
+.route-card:active{transform:scale(.99)}
+.route-card.active{background:linear-gradient(135deg,#0a84ff 0%,#3d5afe 100%);border:0;color:#fff;box-shadow:0 8px 24px rgba(10,132,255,.28)}
+.route-card.active::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none}
+.route-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;position:relative;z-index:1}
+.route-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto;background:var(--bg-input)}
+.route-card.active .route-icon{background:rgba(255,255,255,.18)}
+.route-body{flex:1;min-width:0}
+.route-num{font-size:14.5px;font-weight:700;letter-spacing:-.2px;margin:0;line-height:1.2;color:var(--text)}
+.route-card.active .route-num{color:#fff}
+.route-name{font-size:11.5px;color:var(--text-secondary);margin-top:2px;line-height:1.3}
+.route-card.active .route-name{color:rgba(255,255,255,.85)}
+.route-badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em;flex:0 0 auto;white-space:nowrap}
+.route-badge.active{background:rgba(255,255,255,.22);color:#fff}
+.route-badge.wait{background:var(--bg-input);color:var(--text-secondary)}
+.route-badge.done{background:var(--green-soft);color:var(--green)}
+.route-progress{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;line-height:1.4;position:relative;z-index:1}
+.route-card.active .route-progress{color:rgba(255,255,255,.9)}
+.route-progress b{font-weight:700;color:var(--text)}
+.route-card.active .route-progress b{color:#fff}
+.route-meta{margin-top:10px;padding-top:10px;border-top:1px solid var(--separator);font-size:11.5px;color:var(--text-secondary);line-height:1.4;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+.route-card.active .route-meta{border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.85)}
+.route-remove{color:var(--text-tertiary);font-size:20px;line-height:1;cursor:pointer;padding:4px 8px;background:transparent;border:0;font-family:inherit;min-height:auto;border-radius:8px}
+.route-remove:active{background:var(--bg-input)}
+.route-card.active .route-remove{color:rgba(255,255,255,.7)}
+.route-card.active .route-remove:active{background:rgba(255,255,255,.15)}
+.route-empty{padding:32px 16px;text-align:center;font-size:13px;color:var(--text-tertiary);line-height:1.5;background:var(--bg-card);border:1px dashed var(--separator-opaque);border-radius:14px;margin-bottom:10px}
+.route-empty b{display:block;color:var(--text-secondary);font-weight:600;margin-bottom:6px;font-size:13.5px}
 </style>
 </style>
 </head>
@@ -671,6 +714,25 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
     </div>
     <button id="bannerApply">Обновить</button>
     <button class="later" id="bannerLater">Позже</button>
+  </div>
+
+  <!-- ═══════════════ Сегодня ═══════════════ -->
+  <div class="section" data-tab="home">
+    <div class="section-body" style="padding-top:6px">
+      <div class="today-wrap">
+        <div class="today-greet">
+          <p class="hi" id="todayGreeting">Доброе утро</p>
+          <p class="sub" id="todayDateLine">—</p>
+        </div>
+
+        <div class="today-route-head">
+          <p class="today-route-title" id="todayRouteTitle">Маршрут на сегодня</p>
+          <button type="button" class="today-route-add" id="routeAddBtn">＋ Добавить</button>
+        </div>
+
+        <div id="routeList"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ═══════════════ Параметры ═══════════════ -->
@@ -997,7 +1059,7 @@ body[data-active-tab="history"] .section:not([data-tab="history"]){display:none}
     </div>
   </div>
 
-  <div class="hint version">French Bakery Аудит · v9.9.9 · профиль · график · детали</div>
+  <div class="hint version">French Bakery Аудит · v9.10.0 · маршрут дня</div>
 
 </main>
 
@@ -1479,7 +1541,7 @@ const ACCESS_KEY = 'fbAuditAccessKey';
 const GITHUB_REPO = 'kolegaolega-lab/audit_app';
 const GITHUB_FILE = 'sync.json';
 const GITHUB_API = 'https://api.github.com';
-const APP_VERSION = 'v9.9.9';
+const APP_VERSION = 'v9.10.0';
 const PHOTO_DB = 'fbAuditPhotoDB';
 const PHOTO_STORE = 'photos';
 const UNKNOWN_PAGE_SIZE = 30;
@@ -1585,6 +1647,7 @@ let _profile = null;
 let _points = [];
 let _activePointId = null;
 let _route = null;
+let _pointPickerMode = null; // null | 'add-to-route'
 
 /* === v9.9.1: синхронизация истории === */
 let _historyCache = {};
@@ -2865,6 +2928,7 @@ function addPoint(num, name, address) {
   _points.push(p);
   savePoints();
   updatePointsCount();
+  if (typeof renderToday === 'function') renderToday();
   return p;
 }
 function removePoint(id) {
@@ -2878,6 +2942,7 @@ function removePoint(id) {
       else localStorage.removeItem(ACTIVE_POINT_KEY);
     } catch (e) {}
   }
+  if (typeof renderToday === 'function') renderToday();
 }
 function getPointById(id) {
   return _points.find(p => p.id === id) || null;
@@ -2897,6 +2962,7 @@ function setActivePointId(id) {
   } catch (e) {}
   updateHeaderPoint();
   syncActivePointToInput();
+  if (typeof renderToday === 'function') renderToday();
   return true;
 }
 function getActivePoint() {
@@ -2971,6 +3037,135 @@ function ensureRouteToday() {
     saveRoute();
   }
   return _route;
+}
+
+/* === v9.10.0: маршрут дня + рендер «Сегодня» === */
+function isPointInRoute(pointId) {
+  if (!_route || !Array.isArray(_route.pointIds)) return false;
+  return _route.pointIds.includes(pointId);
+}
+function addPointToRoute(pointId) {
+  if (!pointId || !getPointById(pointId)) return false;
+  ensureRouteToday();
+  if (!_route.pointIds.includes(pointId)) {
+    _route.pointIds.push(pointId);
+    saveRoute();
+  }
+  return true;
+}
+function removeFromRoute(pointId) {
+  ensureRouteToday();
+  _route.pointIds = _route.pointIds.filter(id => id !== pointId);
+  saveRoute();
+}
+function countCheckedCategories() {
+  let done = 0;
+  CATEGORY_ORDER.forEach(cat => {
+    const has = tableRows.some(r => r.category === cat && r.stock != null);
+    if (has) done++;
+  });
+  return done;
+}
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return 'Доброе утро';
+  if (h >= 12 && h < 18) return 'Добрый день';
+  if (h >= 18 && h < 23) return 'Добрый вечер';
+  return 'Доброй ночи';
+}
+const WEEKDAYS_RU = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+const MONTHS_RU_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function formatTodayLine() {
+  const d = new Date();
+  return `${d.getDate()} ${MONTHS_RU_GEN[d.getMonth()]} · ${WEEKDAYS_RU[d.getDay()]}`;
+}
+function renderToday() {
+  const greetEl = $('todayGreeting');
+  const dateEl = $('todayDateLine');
+  const titleEl = $('todayRouteTitle');
+  const listEl = $('routeList');
+  if (!listEl) return;
+
+  if (greetEl) {
+    const name = _profile && _profile.name ? _profile.name : '';
+    greetEl.textContent = name ? `${getGreeting()}, ${name}` : getGreeting();
+  }
+  if (dateEl) dateEl.textContent = formatTodayLine();
+
+  ensureRouteToday();
+  const ids = _route.pointIds.filter(id => getPointById(id));
+
+  if (titleEl) {
+    titleEl.textContent = ids.length
+      ? `Маршрут на сегодня · ${ids.length} ${pluralize(ids.length, 'точка', 'точки', 'точек')}`
+      : 'Маршрут на сегодня';
+  }
+
+  listEl.innerHTML = '';
+
+  if (!ids.length) {
+    const empty = document.createElement('div');
+    empty.className = 'route-empty';
+    empty.innerHTML = '<b>Маршрут пуст</b>Добавьте точки, которые планируете обойти сегодня.';
+    listEl.appendChild(empty);
+    return;
+  }
+
+  const checkedCount = countCheckedCategories();
+  const activeId = _activePointId;
+
+  ids.forEach(id => {
+    const p = getPointById(id);
+    if (!p) return;
+    const isActive = id === activeId;
+    const card = document.createElement('div');
+    card.className = 'route-card' + (isActive ? ' active' : '');
+    card.dataset.pointId = p.id;
+
+    const badgeCls = isActive ? 'active' : 'wait';
+    const badgeText = isActive ? 'Сейчас' : 'Ожидает';
+    const progressText = isActive
+      ? `<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.85"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Идёт проверка · <b>${checkedCount} из 3 категорий</b>`
+      : `<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.6"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Ещё не начато`;
+
+    const metaLine = isActive
+      ? (checkedCount >= 3
+          ? '<span>✓ Все категории пройдены</span><span>Завершить →</span>'
+          : `<span>Пройдено: ${checkedCount} из 3</span><span>Продолжить →</span>`)
+      : '<span>Готово к проверке</span><span>Начать →</span>';
+
+    card.innerHTML =
+      '<div class="route-head">' +
+        '<div class="route-icon">📍</div>' +
+        '<div class="route-body">' +
+          '<p class="route-num">' + escapeHtml(p.num) + (p.name ? ' · ' + escapeHtml(p.name) : '') + '</p>' +
+          (p.address ? '<p class="route-name">' + escapeHtml(p.address) + '</p>' : '') +
+        '</div>' +
+        '<span class="route-badge ' + badgeCls + '">' + badgeText + '</span>' +
+      '</div>' +
+      '<div class="route-progress">' + progressText + '</div>' +
+      '<div class="route-meta">' + metaLine + '</div>' +
+      '<button type="button" class="route-remove" data-remove="' + escapeHtml(p.id) + '" aria-label="Убрать из маршрута">✕</button>';
+
+    card.addEventListener('click', e => {
+      if (e.target.closest('.route-remove')) return;
+      if (setActivePointId(p.id)) {
+        showToast('Активная точка: ' + p.num);
+      }
+    });
+
+    const removeBtn = card.querySelector('.route-remove');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        removeFromRoute(p.id);
+        renderToday();
+        showToast('Убрано из маршрута');
+      });
+    }
+
+    listEl.appendChild(card);
+  });
 }
   
   /* ═══════════════════════════════════════════
@@ -3851,10 +4046,14 @@ function renderPointPickerList() {
     box.innerHTML = '<div class="pt-empty"><b>Точек пока нет</b>Добавьте первую точку — через «Управление точками».</div>';
     return;
   }
+  const isAddMode = _pointPickerMode === 'add-to-route';
   _points.slice().sort((a, b) => naturalCompare(a.num, b.num)).forEach(p => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'pick-row' + (p.id === _activePointId ? ' selected' : '');
+    const inRoute = isPointInRoute(p.id);
+    const isActive = p.id === _activePointId;
+    const selected = isAddMode ? inRoute : isActive;
+    btn.className = 'pick-row' + (selected ? ' selected' : '');
     const addr = [p.name, p.address].filter(Boolean).join(' · ');
     btn.innerHTML =
       '<span class="pick-icon">📍</span>' +
@@ -3864,14 +4063,40 @@ function renderPointPickerList() {
       '</span>' +
       '<span class="pick-check">✓</span>';
     btn.onclick = () => {
-      setActivePointId(p.id);
-      closeModal('pointPickerModal');
-      showToast('Активная точка: ' + p.num);
+      if (isAddMode) {
+        if (inRoute) {
+          removeFromRoute(p.id);
+          showToast('Убрано из маршрута');
+        } else {
+          addPointToRoute(p.id);
+          if (!_activePointId) setActivePointId(p.id);
+          showToast('Добавлено: ' + p.num);
+        }
+        renderPointPickerList();
+        renderToday();
+      } else {
+        setActivePointId(p.id);
+        closeModal('pointPickerModal');
+        showToast('Активная точка: ' + p.num);
+      }
     };
     box.appendChild(btn);
   });
 }
-function openPointPicker() {
+function openPointPicker(mode) {
+  _pointPickerMode = mode || null;
+  const header = document.querySelector('#pointPickerContent .modal-header');
+  if (header) {
+    const h3 = header.querySelector('h3');
+    const hint = header.querySelector('.hint');
+    if (_pointPickerMode === 'add-to-route') {
+      if (h3) h3.textContent = 'Добавить в маршрут';
+      if (hint) hint.textContent = 'Тапните по точке, чтобы добавить или убрать её из маршрута на сегодня.';
+    } else {
+      if (h3) h3.textContent = 'Где вы сейчас?';
+      if (hint) hint.textContent = 'Выберите точку. Она будет активной для всех проверок.';
+    }
+  }
   renderPointPickerList();
   openModal('pointPickerModal');
 }
@@ -8006,7 +8231,7 @@ function bindUI() {
   const pickManage = $('pointPickerManageBtn');
   if (pickManage) pickManage.onclick = () => { closeModal('pointPickerModal'); setTimeout(openPointsManager, 200); };
   const pickClose = $('pointPickerCloseBtn');
-  if (pickClose) pickClose.onclick = () => closeModal('pointPickerModal');
+  if (pickClose) pickClose.onclick = () => { _pointPickerMode = null; closeModal('pointPickerModal'); renderToday(); };
 
   /* === v9.9.0: управление точками === */
   const pointsBtn = $('pointsBtn');
@@ -8019,6 +8244,10 @@ function bindUI() {
   if (npCancel) npCancel.onclick = hidePointAddForm;
   const npSave = $('newPointSaveBtn');
   if (npSave) npSave.onclick = saveNewPoint;
+
+  /* === v9.10.0: кнопка добавления в маршрут === */
+  const routeAddBtn = $('routeAddBtn');
+  if (routeAddBtn) routeAddBtn.onclick = () => openPointPicker('add-to-route');
 
   /* === v9.9.0: профиль === */
   const resetProfileBtn = $('resetProfileBtn');
@@ -8584,7 +8813,7 @@ function bindModalBackdrops() {
       else if (id === 'priceEditModal') closePriceEdit();
       else if (id === 'compareModal') closeCompareModal();
       else if (id === 'firstRunModal') { /* первый запуск не закрывается тапом по фону */ }
-      else if (id === 'pointPickerModal') closeModal('pointPickerModal');
+      else if (id === 'pointPickerModal') { _pointPickerMode = null; closeModal('pointPickerModal'); renderToday(); }
       else if (id === 'pointsManagerModal') closeModal('pointsManagerModal');
     });
   });
@@ -8601,7 +8830,7 @@ function bindModalBackdrops() {
       else if (!$('pricesModal').classList.contains('hidden')) closePricesModal();
       else if (!$('priceEditModal').classList.contains('hidden')) closePriceEdit();
       else if (!$('compareModal').classList.contains('hidden')) closeCompareModal();
-      else if (!$('pointPickerModal').classList.contains('hidden')) closeModal('pointPickerModal');
+      else if (!$('pointPickerModal').classList.contains('hidden')) { _pointPickerMode = null; closeModal('pointPickerModal'); renderToday(); }
       else if (!$('pointsManagerModal').classList.contains('hidden')) closeModal('pointsManagerModal');
       else if (!$('checkDetailsModal').classList.contains('hidden')) closeModal('checkDetailsModal');
       else if (!$('dayModal').classList.contains('hidden')) closeModal('dayModal');
@@ -8709,6 +8938,7 @@ function init() {
   updatePointsCount();
   updateProfileInfoBlock();
   syncActivePointToInput();
+  renderToday();
   if (!_profile) {
     setTimeout(() => showFirstRunModal(), 500);
   }
@@ -8756,9 +8986,10 @@ function init() {
     if (e.key === IGNORED_KEY) { IGNORED = loadIgnored(); updateIgnoredCount(); updateUnknownBanner(); }
     if (e.key === ALIASES_KEY) { ALIASES = loadAliases(); updateAliasesCount(); }
     if (e.key === PRICES_KEY) { PRICES = loadPrices(); }
-    if (e.key === POINTS_KEY) { _points = loadPoints(); updateHeaderPoint(); updatePointsCount(); }
-    if (e.key === ACTIVE_POINT_KEY) { _activePointId = loadActivePointId(); updateHeaderPoint(); syncActivePointToInput(); }
-    if (e.key === PROFILE_KEY) { _profile = loadProfile(); updateHeaderProfile(); updateProfileInfoBlock(); }
+    if (e.key === POINTS_KEY) { _points = loadPoints(); updateHeaderPoint(); updatePointsCount(); renderToday(); }
+    if (e.key === ACTIVE_POINT_KEY) { _activePointId = loadActivePointId(); updateHeaderPoint(); syncActivePointToInput(); renderToday(); }
+    if (e.key === PROFILE_KEY) { _profile = loadProfile(); updateHeaderProfile(); updateProfileInfoBlock(); renderToday(); }
+    if (e.key === ROUTE_KEY) { _route = loadRoute(); renderToday(); }
   });
   window.addEventListener('beforeunload', () => {
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
@@ -8786,7 +9017,7 @@ function init() {
     }
   });
   window.addEventListener('error', e => console.warn('Global error:', e.message));
-  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', APP_VERSION + ' · tab:', document.body.dataset.activeTab, '· profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
+  console.log('%c French Bakery Аудит ', 'background:#0a84ff;color:#fff;padding:4px 10px;border-radius:6px;font-weight:800', APP_VERSION + ' · tab:', document.body.dataset.activeTab, '· profile:', _profile ? _profile.name : '—', '· points:', _points.length, '· route:', _route ? _route.pointIds.length : 0, '· queue:', _historyQueue.length, '· months:', Object.keys(_historyCache).length, '· catalog:', PRODUCTS.length);
 }
 
 /* ═══════════════════════════════════════════
