@@ -1916,6 +1916,7 @@ let _activePointId = null;
 let _route = null;
 let _pointPickerMode = null; // null | 'add-to-route'
 let _photoCount = 0;
+let _firstRunShown = false;
 
 /* === v9.9.1: синхронизация истории === */
 let _historyCache = {};
@@ -4306,8 +4307,10 @@ function openCheckDetails(snapshot) {
    v9.9.0 — МОДАЛКА ПЕРВОГО ЗАПУСКА
    ═══════════════════════════════════════════ */
 function showFirstRunModal() {
+  if (_firstRunShown) return;
   const m = $('firstRunModal');
   if (!m) return;
+  _firstRunShown = true;
   const nameEl = $('firstRunName');
   const tokenEl = $('firstRunToken');
   const errEl = $('firstRunError');
@@ -4326,6 +4329,7 @@ function showFirstRunModal() {
   setTimeout(() => { if (nameEl) nameEl.focus(); }, 300);
 }
 function hideFirstRunModal() {
+  _firstRunShown = false;
   closeModal('firstRunModal');
 }
 async function submitFirstRun() {
@@ -8666,6 +8670,7 @@ function bindUI() {
     clearProfile();
     updateHeaderProfile();
     updateProfileInfoBlock();
+    _firstRunShown = false;
     setTimeout(showFirstRunModal, 300);
   };
 
@@ -9292,12 +9297,17 @@ function initLogoFallback() {
 function initSW() {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
+    const hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed:', err));
 
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
       refreshing = true;
+      // При первой установке SW (controller был null) — reload не нужен,
+      // страница уже загружена с сервера. Reload — только при обновлении
+      // (когда старый SW заменяется новым).
+      if (!hadController) return;
       window.location.reload();
     });
   });
