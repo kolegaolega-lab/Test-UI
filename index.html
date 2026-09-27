@@ -756,6 +756,22 @@ body[data-active-tab="check"] .check-steps{display:block}
 main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 .section.section-stretch > .section-body{flex:1 1 auto}
 .section.section-stretch > .section-header + .section-body{flex:1 1 auto}
+
+/* ═══════════════════════════════════════════
+   v9.13.0 — Строки вкладки «Ещё»
+   ═══════════════════════════════════════════ */
+.more-group{padding:4px 0;border-bottom:1px solid var(--separator)}
+.more-group:first-child{padding-top:8px}
+.more-group:last-child{border-bottom:0;padding-bottom:8px}
+.more-group-title{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;padding:8px 16px 4px}
+.more-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:transparent;border:0;width:100%;text-align:left;color:var(--text);font-family:inherit;font-size:14.5px;font-weight:500;cursor:pointer;min-height:auto;border-radius:0;white-space:normal;transition:background .12s}
+.more-row:active{background:var(--bg-input)}
+.more-icon{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto;line-height:1;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Emoji","Apple Color Emoji",sans-serif}
+.more-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.more-label{font-size:14.5px;font-weight:500;line-height:1.3;color:var(--text)}
+.more-sub{font-size:11.5px;color:var(--text-secondary);line-height:1.3}
+.more-value{font-size:13px;color:var(--text-secondary);flex:0 0 auto;font-variant-numeric:tabular-nums;padding-right:2px}
+.more-chev{color:var(--text-tertiary);font-size:18px;font-weight:400;flex:0 0 auto;line-height:1}
 </style>
 </head>
 <body>
@@ -804,27 +820,15 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
   </div>
 
-  <!-- ═══════════════ Параметры ═══════════════ -->
-  <div class="section" data-tab="home">
-    <div class="section-header">
-      <h2>Параметры</h2>
-      <p class="desc">Дата и время определяются автоматически.</p>
-    </div>
+  <!-- ═══════════════ Параметры (скрыто с v9.13.0) ═══════════════
+       Блок визуально убран — он дублировал маршрут дня.
+       Поля autoDate, autoTime, point остаются в DOM,
+       чтобы не ломать логику (saveSession, applySession, exportExcel и др.). -->
+  <div class="section" style="display:none" aria-hidden="true">
     <div class="section-body">
-      <div class="row">
-        <div>
-          <label>Дата</label>
-          <input id="autoDate" type="text" readonly value="—">
-        </div>
-        <div>
-          <label>Время</label>
-          <input id="autoTime" type="text" readonly value="—">
-        </div>
-      </div>
-      <div style="margin-top:10px">
-        <label>Точка</label>
-        <input id="point" type="text" placeholder="№037" autocomplete="off" maxlength="50">
-      </div>
+      <input id="autoDate" type="text" readonly value="—" tabindex="-1">
+      <input id="autoTime" type="text" readonly value="—" tabindex="-1">
+      <input id="point" type="text" placeholder="№037" autocomplete="off" maxlength="50" tabindex="-1">
     </div>
   </div>
 
@@ -984,58 +988,89 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
   </div>
 
-  <!-- ═══════════════ Справочник ═══════════════ -->
+  <!-- ═══════════════ Ещё (бывший Справочник) ═══════════════ -->
   <div class="section" data-tab="catalog">
-    <div class="section-header">
-      <h2>Справочник</h2>
-      <p class="desc">Хранится локально. Можно обновить с сервера.</p>
-    </div>
-    <div class="section-body">
-      <div class="meta" id="metaLocal">
-        <div class="item"><span class="dot stale"></span><span>Локальная версия · <b>не синхронизировано</b></span></div>
-        <div class="item"><span class="label">Последняя проверка</span><span id="lastCheckTime">—</span></div>
+    <div class="section-body" style="padding:0">
+
+      <!-- Группа: Профиль и команда -->
+      <div class="more-group">
+        <div class="more-group-title">Профиль и команда</div>
+        <button type="button" class="more-row" data-action="open-profile">
+          <span class="more-icon" style="background:var(--accent-soft);color:var(--accent)">👤</span>
+          <span class="more-body">
+            <span class="more-label">Мой профиль</span>
+            <span class="more-sub" id="moreProfileSub">—</span>
+          </span>
+          <span class="more-value"></span>
+          <span class="more-chev">›</span>
+        </button>
+        <button type="button" class="more-row" data-action="open-auditors">
+          <span class="more-icon" style="background:var(--purple-soft);color:var(--purple)">👥</span>
+          <span class="more-body">
+            <span class="more-label">Аудиторы</span>
+          </span>
+          <span class="more-value">5</span>
+          <span class="more-chev">›</span>
+        </button>
       </div>
-      <div class="meta" id="metaRemote" style="display:none">
-        <div class="item"><span class="dot fresh"></span><span>Синхронизировано · <b id="syncTime">—</b></span></div>
-        <div class="item"><span class="label">Последняя проверка</span><span id="lastCheckTime2">—</span></div>
+
+      <!-- Группа: Справочники -->
+      <div class="more-group">
+        <div class="more-group-title">Справочники</div>
+        <button type="button" class="more-row" data-action="open-catalog">
+          <span class="more-icon" style="background:var(--green-soft);color:var(--green)">📚</span>
+          <span class="more-body"><span class="more-label">Справочник</span></span>
+          <span class="more-value" id="moreCatalogCount">0</span>
+          <span class="more-chev">›</span>
+        </button>
+        <button type="button" class="more-row" data-action="open-points">
+          <span class="more-icon" style="background:var(--orange-soft);color:var(--orange)">📍</span>
+          <span class="more-body"><span class="more-label">Точки</span></span>
+          <span class="more-value" id="pointsCount">0</span>
+          <span class="more-chev">›</span>
+        </button>
+        <button type="button" class="more-row" data-action="open-prices">
+          <span class="more-icon" style="background:var(--red-soft);color:var(--red)">₽</span>
+          <span class="more-body"><span class="more-label">Цены позиций</span></span>
+          <span class="more-value" id="morePricesCount">0</span>
+          <span class="more-chev">›</span>
+        </button>
       </div>
-      <div class="meta" id="metaSyncing" style="display:none">
-        <div class="item"><span class="dot syncing"></span><span>Проверка обновлений…</span></div>
+
+      <!-- Группа: Инструменты -->
+      <div class="more-group">
+        <div class="more-group-title">Инструменты</div>
+        <button type="button" class="more-row" data-action="open-aliases" id="moreAliasesRow" style="display:none">
+          <span class="more-icon" style="background:var(--blue);color:#fff">⇄</span>
+          <span class="more-body"><span class="more-label">Алиасы</span></span>
+          <span class="more-value" id="aliasesCount">0</span>
+          <span class="more-chev">›</span>
+        </button>
+        <button type="button" class="more-row" data-action="open-ignored">
+          <span class="more-icon" style="background:var(--bg-elev-2);color:var(--text-secondary)">∅</span>
+          <span class="more-body"><span class="more-label">Игнор-лист</span></span>
+          <span class="more-value" id="ignoredCount">0</span>
+          <span class="more-chev">›</span>
+        </button>
+        <button type="button" class="more-row" data-action="open-sync">
+          <span class="more-icon" style="background:var(--purple-soft);color:var(--purple)">🔄</span>
+          <span class="more-body"><span class="more-label">Настройки синхронизации</span></span>
+          <span class="more-value"></span>
+          <span class="more-chev">›</span>
+        </button>
       </div>
-      <div class="stack">
-        <button id="checkUpdatesBtn" class="secondary">Проверить обновления</button>
-        <button id="publishBtn" class="purple" style="display:none">Опубликовать</button>
+
+      <!-- Группа: Приложение -->
+      <div class="more-group">
+        <div class="more-group-title">Приложение</div>
+        <button type="button" class="more-row" data-action="open-about">
+          <span class="more-icon" style="background:var(--bg-elev-2);color:var(--text-secondary)">ℹ️</span>
+          <span class="more-body"><span class="more-label">О приложении</span></span>
+          <span class="more-value" id="moreAppVersion">v9.13.0</span>
+          <span class="more-chev">›</span>
+        </button>
       </div>
-      <div id="syncStatus" class="status"></div>
-      <div class="actions-row">
-        <button id="editCatalogBtn" class="secondary">Редактировать</button>
-        <button id="ignoredBtn" class="secondary">Игнор-лист (<span id="ignoredCount">0</span>)</button>
-      </div>
-      <button id="aliasesBtn" class="secondary block" style="display:none;margin-top:8px">Алиасы (<span id="aliasesCount">0</span>)</button>
-      <button id="pricesBtn" class="secondary block" style="display:none;margin-top:8px">Цены позиций</button>
-      <button id="pointsBtn" class="secondary block" style="margin-top:8px">Точки (<span id="pointsCount">0</span>)</button>
-      <details class="settings">
-        <summary>Настройки синхронизации</summary>
-        <div class="content">
-          <div id="ownerActivateBlock">
-            <div style="margin-bottom:10px">
-              <label>Ключ доступа</label>
-              <input id="tokenInput" type="password" placeholder="Введите ключ" autocomplete="off" maxlength="200">
-            </div>
-            <button id="activateOwnerBtn" class="purple block">Активировать режим владельца</button>
-          </div>
-          <button id="deactivateOwnerBtn" class="secondary block" style="display:none">Выйти из режима владельца</button>
-        </div>
-      </details>
-      <details class="settings">
-        <summary>Мой профиль</summary>
-        <div class="content">
-          <div id="profileInfoBlock">
-            <p class="hint" id="profileInfoText" style="margin:0 0 10px"></p>
-            <button id="resetProfileBtn" class="secondary block">Сменить профиль</button>
-          </div>
-        </div>
-      </details>
+
     </div>
   </div>
 
@@ -1105,6 +1140,23 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     </div>
   </div>
 
+  <!-- ═══════════════ Экспорт (переехал из «Сегодня» в v9.13.0) ═══════════════ -->
+  <div class="section" data-tab="check">
+    <div class="section-header">
+      <h2>Экспорт</h2>
+      <p class="desc">Скачайте отчёт или сохраните сессию.</p>
+    </div>
+    <div class="section-body">
+      <div class="stack">
+        <button id="exportBtn" class="primary block">Скачать Excel</button>
+        <div class="row">
+          <button id="restoreSessionBtn" class="secondary">Сохранить сессию</button>
+          <button id="clearBtn" class="secondary">Сбросить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════════ История проверок ═══════════════ -->
   <div class="section" data-tab="history">
     <div class="section-header">
@@ -1148,25 +1200,6 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
       Как только аудиторы отправят отчёты — они появятся здесь.
     </div>
   </div>
-
-  <!-- ═══════════════ Экспорт ═══════════════ -->
-  <div class="section" data-tab="home">
-    <div class="section-header">
-      <h2>Экспорт</h2>
-      <p class="desc">Скачайте отчёт или сохраните сессию.</p>
-    </div>
-    <div class="section-body">
-      <div class="stack">
-        <button id="exportBtn" class="primary block">Скачать Excel</button>
-        <div class="row">
-          <button id="restoreSessionBtn" class="secondary">Сохранить сессию</button>
-          <button id="clearBtn" class="secondary">Сбросить</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="hint version">French Bakery Аудит · v9.12.5 · таббар к низу</div>
 
 </main>
 
@@ -1609,6 +1642,109 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     <div class="modal-body" id="cdModalBody" style="padding:0"></div>
     <div class="modal-footer">
       <button id="cdModalCloseBtn" class="secondary block">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Модалка: Настройки синхронизации ═══════════════ -->
+<div id="syncSettingsModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Настройки синхронизации</h3>
+      <p class="hint">Обновление справочника, точек и цен с сервера.</p>
+    </div>
+    <div class="modal-body">
+      <div class="meta" id="metaLocal">
+        <div class="item"><span class="dot stale"></span><span>Локальная версия · <b>не синхронизировано</b></span></div>
+        <div class="item"><span class="label">Последняя проверка</span><span id="lastCheckTime">—</span></div>
+      </div>
+      <div class="meta" id="metaRemote" style="display:none">
+        <div class="item"><span class="dot fresh"></span><span>Синхронизировано · <b id="syncTime">—</b></span></div>
+        <div class="item"><span class="label">Последняя проверка</span><span id="lastCheckTime2">—</span></div>
+      </div>
+      <div class="meta" id="metaSyncing" style="display:none">
+        <div class="item"><span class="dot syncing"></span><span>Проверка обновлений…</span></div>
+      </div>
+      <div class="stack">
+        <button id="checkUpdatesBtn" class="secondary">Проверить обновления</button>
+        <button id="publishBtn" class="purple" style="display:none">Опубликовать</button>
+      </div>
+      <div id="syncStatus" class="status"></div>
+
+      <div id="ownerActivateBlock" style="margin-top:14px">
+        <label>Ключ доступа</label>
+        <input id="tokenInput" type="password" placeholder="Введите ключ" autocomplete="off" maxlength="200">
+        <button id="activateOwnerBtn" class="purple block" style="margin-top:8px">Активировать режим владельца</button>
+      </div>
+      <button id="deactivateOwnerBtn" class="secondary block" style="display:none;margin-top:8px">Выйти из режима владельца</button>
+    </div>
+    <div class="modal-footer">
+      <button id="closeSyncSettingsBtn" class="secondary block">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Модалка: Мой профиль ═══════════════ -->
+<div id="myProfileModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Мой профиль</h3>
+      <p class="hint">Имя и токен видны только вам.</p>
+    </div>
+    <div class="modal-body">
+      <p class="hint" id="profileInfoText" style="margin:0 0 10px"></p>
+    </div>
+    <div class="modal-footer">
+      <button id="resetProfileBtn" class="secondary block" style="margin-bottom:8px">Сменить профиль</button>
+      <button id="closeProfileBtn" class="secondary block">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Модалка: Аудиторы ═══════════════ -->
+<div id="auditorsModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Аудиторы</h3>
+      <p class="hint">Команда появится позже.</p>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="text-align:center;padding:24px 12px">Раздел в разработке.</div>
+    </div>
+    <div class="modal-footer">
+      <button id="closeAuditorsBtn" class="secondary block">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ Модалка: О приложении ═══════════════ -->
+<div id="aboutModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>О приложении</h3>
+      <p class="hint" id="aboutVersion">French Bakery Аудит · v9.13.0</p>
+    </div>
+    <div class="modal-body">
+      <p class="hint" style="margin:0 0 12px">PWA для аудита сроков годности в кондитерской French Bakery.</p>
+
+      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px">Новому аудитору</div>
+      <ol class="hint" style="margin:0;padding-left:20px;line-height:1.6">
+        <li>Скачайте приложение на iPhone: откройте сайт в Safari → «Поделиться» → «На экран Домой».</li>
+        <li>При первом запуске введите своё имя и GitHub-токен.</li>
+        <li>Токен создаётся здесь: <b>github.com/settings/tokens</b> → Generate new token (classic) → scope <b>repo</b>.</li>
+        <li>Выберите точку и начинайте проверку.</li>
+      </ol>
+
+      <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:18px 0 8px">Полезные ссылки</div>
+      <p class="hint" style="margin:0 0 6px">
+        <a href="https://github.com/settings/tokens" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:600">→ Создать GitHub-токен</a>
+      </p>
+      <p class="hint" style="margin:0">
+        <a href="https://support.apple.com/ru-ru/guide/iphone/iph42ab2f3a7/ios" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:600">→ Как добавить PWA на экран Домой</a>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="closeAboutBtn" class="secondary block">Закрыть</button>
     </div>
   </div>
 </div>
@@ -2111,6 +2247,7 @@ function loadCatalog() {
 function saveCatalog() {
   try { localStorage.setItem(CATALOG_KEY, JSON.stringify(PRODUCTS)); }
   catch (e) { console.warn('saveCatalog:', e); }
+  if (typeof renderMoreCounts === 'function') renderMoreCounts();
 }
 
 /* ═══════════════════════════════════════════
@@ -2230,6 +2367,7 @@ function loadPrices() {
 function savePrices() {
   try { localStorage.setItem(PRICES_KEY, JSON.stringify(PRICES)); }
   catch (e) { console.warn('savePrices:', e); }
+  if (typeof renderMoreCounts === 'function') renderMoreCounts();
 }
 function getPriceFor(name) {
   if (!name) return 0;
@@ -2744,6 +2882,7 @@ function setOwnerMode(on) {
   if (badge && badge._t) { clearTimeout(badge._t); badge._t = null; }
   updateHeaderBadge();
   if (typeof updateUnknownMatchBtn === 'function') updateUnknownMatchBtn();
+  if (typeof renderMoreCounts === 'function') renderMoreCounts();
 }
 async function activateOwner() {
   const input = $('tokenInput');
@@ -3140,6 +3279,7 @@ function updateHeaderProfile() {
   if (typeof updateSyncIndicator === 'function') {
     updateSyncIndicator(getSyncIndicatorState());
   }
+  if (typeof renderMoreCounts === 'function') renderMoreCounts();
 }
 function updateProfileInfoBlock() {
   const t = $('profileInfoText');
@@ -8232,7 +8372,86 @@ function cmpBindUI() {
   const closeBtn = $('cmpCloseBtn'); if (closeBtn) closeBtn.onclick = closeCompareModal;
   const applyBtn = $('cmpApplyBtn'); if (applyBtn) applyBtn.onclick = cmpApplyMatched;
 }
-  /* ═══════════════════════════════════════════
+/* ═══════════════════════════════════════════
+   v9.13.0 — Вкладка «Ещё»: счётчики и обработчики строк
+   ═══════════════════════════════════════════ */
+function renderMoreCounts() {
+  const catEl = $('moreCatalogCount');
+  if (catEl) catEl.textContent = String(PRODUCTS.length);
+  const priceEl = $('morePricesCount');
+  if (priceEl) priceEl.textContent = String(Object.keys(PRICES).length);
+  const ignEl = $('ignoredCount');
+  if (ignEl) ignEl.textContent = String(IGNORED.length);
+  const aliEl = $('aliasesCount');
+  if (aliEl) aliEl.textContent = String(ALIASES.length);
+  const ptEl = $('pointsCount');
+  if (ptEl) ptEl.textContent = String(_points.length);
+  const verEl = $('moreAppVersion');
+  if (verEl) verEl.textContent = APP_VERSION;
+  const subEl = $('moreProfileSub');
+  if (subEl) {
+    if (_profile) {
+      const login = _profile.login ? ' · ' + _profile.login : '';
+      subEl.textContent = _profile.name + login;
+    } else {
+      subEl.textContent = 'Профиль не настроен';
+    }
+  }
+  const aliRow = $('moreAliasesRow');
+  if (aliRow) aliRow.style.display = _isOwner ? 'flex' : 'none';
+}
+
+function openSyncSettings() {
+  const st = $('syncStatus'); if (st) { st.className = 'status'; st.textContent = ''; }
+  updateCatalogMeta();
+  setOwnerMode(_isOwner);
+  openModal('syncSettingsModal');
+}
+function openMyProfile() {
+  updateProfileInfoBlock();
+  openModal('myProfileModal');
+}
+function openAuditors() {
+  openModal('auditorsModal');
+}
+function openAbout() {
+  const verEl = $('aboutVersion');
+  if (verEl) verEl.textContent = 'French Bakery Аудит · ' + APP_VERSION;
+  openModal('aboutModal');
+}
+
+function bindMoreRows() {
+  document.querySelectorAll('.more-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const action = row.dataset.action;
+      if (!action) return;
+      if (action === 'open-catalog') {
+        const cs = $('catalogStatus'); if (cs) { cs.className = 'status'; cs.textContent = ''; }
+        _catalogSelectMode = false;
+        _catalogSelected = new Set();
+        updateCatalogSelectUI();
+        renderCatalogList();
+        openModal('catalogModal');
+      }
+      else if (action === 'open-points') openPointsManager();
+      else if (action === 'open-prices') openPricesModal();
+      else if (action === 'open-aliases') { if (_isOwner) openAliasesModal(); }
+      else if (action === 'open-ignored') {
+        _ignoredSelectMode = false;
+        _ignoredSelected = new Set();
+        updateIgnoredSelectUI();
+        renderIgnoredList();
+        openModal('ignoredModal');
+      }
+      else if (action === 'open-sync') openSyncSettings();
+      else if (action === 'open-profile') openMyProfile();
+      else if (action === 'open-auditors') openAuditors();
+      else if (action === 'open-about') openAbout();
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════
    BIND UI
    ═══════════════════════════════════════════ */
 function bindUI() {
@@ -8848,6 +9067,16 @@ function bindUI() {
   const closeAliasTarget = $('closeAliasTargetBtn');
   if (closeAliasTarget) closeAliasTarget.onclick = (e) => { e.stopPropagation(); closeAliasTargetModal(); };
 
+  /* === v9.13.0: кнопки закрытия новых модалок === */
+  const closeSyncSettingsBtn = $('closeSyncSettingsBtn');
+  if (closeSyncSettingsBtn) closeSyncSettingsBtn.onclick = (e) => { e.stopPropagation(); closeModal('syncSettingsModal'); };
+  const closeProfileBtn = $('closeProfileBtn');
+  if (closeProfileBtn) closeProfileBtn.onclick = (e) => { e.stopPropagation(); closeModal('myProfileModal'); };
+  const closeAuditorsBtn = $('closeAuditorsBtn');
+  if (closeAuditorsBtn) closeAuditorsBtn.onclick = (e) => { e.stopPropagation(); closeModal('auditorsModal'); };
+  const closeAboutBtn = $('closeAboutBtn');
+  if (closeAboutBtn) closeAboutBtn.onclick = (e) => { e.stopPropagation(); closeModal('aboutModal'); };
+
   const copyModal = $('copyFromModalBtn');
   if (copyModal) copyModal.onclick = async () => {
     const pc = $('promptContent');
@@ -8930,6 +9159,9 @@ function bindUI() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeFabMenu();
   });
+
+  /* === v9.13.0: строки вкладки «Ещё» === */
+  bindMoreRows();
 }
 
 /* ═══════════════════════════════════════════
@@ -8954,7 +9186,7 @@ function setRecognizeMode(mode) {
    BIND MODAL BACKDROPS
    ═══════════════════════════════════════════ */
 function bindModalBackdrops() {
-  ['catalogModal', 'unknownModal', 'ignoredModal', 'aliasesModal', 'aliasTargetModal', 'reportModal', 'noCategoryModal', 'pricesModal', 'priceEditModal', 'compareModal', 'firstRunModal', 'pointPickerModal', 'pointsManagerModal', 'dayModal', 'checkDetailsModal'].forEach(id => {
+  ['catalogModal', 'unknownModal', 'ignoredModal', 'aliasesModal', 'aliasTargetModal', 'reportModal', 'noCategoryModal', 'pricesModal', 'priceEditModal', 'compareModal', 'firstRunModal', 'pointPickerModal', 'pointsManagerModal', 'dayModal', 'checkDetailsModal', 'syncSettingsModal', 'myProfileModal', 'auditorsModal', 'aboutModal'].forEach(id => {
     const m = $(id); if (!m) return;
     m.addEventListener('click', e => {
       if (e.target !== m) return;
@@ -8985,6 +9217,10 @@ function bindModalBackdrops() {
       else if (id === 'firstRunModal') { /* первый запуск не закрывается тапом по фону */ }
       else if (id === 'pointPickerModal') { _pointPickerMode = null; closeModal('pointPickerModal'); renderToday(); }
       else if (id === 'pointsManagerModal') closeModal('pointsManagerModal');
+      else if (id === 'syncSettingsModal') closeModal('syncSettingsModal');
+      else if (id === 'myProfileModal') closeModal('myProfileModal');
+      else if (id === 'auditorsModal') closeModal('auditorsModal');
+      else if (id === 'aboutModal') closeModal('aboutModal');
     });
   });
   document.addEventListener('keydown', e => {
@@ -9005,6 +9241,10 @@ function bindModalBackdrops() {
       else if (!$('checkDetailsModal').classList.contains('hidden')) closeModal('checkDetailsModal');
       else if (!$('dayModal').classList.contains('hidden')) closeModal('dayModal');
       else if (!$('promptModal').classList.contains('hidden')) closeModal('promptModal');
+      else if (!$('syncSettingsModal').classList.contains('hidden')) closeModal('syncSettingsModal');
+      else if (!$('myProfileModal').classList.contains('hidden')) closeModal('myProfileModal');
+      else if (!$('auditorsModal').classList.contains('hidden')) closeModal('auditorsModal');
+      else if (!$('aboutModal').classList.contains('hidden')) closeModal('aboutModal');
     }
   });
 }
@@ -9092,6 +9332,7 @@ function init() {
   updateProfileInfoBlock();
   syncActivePointToInput();
   renderToday();
+  renderMoreCounts();
   if (!_profile) {
     setTimeout(() => showFirstRunModal(), 500);
   }
@@ -9140,8 +9381,8 @@ function init() {
     if (e.key === IGNORED_KEY) { IGNORED = loadIgnored(); updateIgnoredCount(); updateUnknownBanner(); }
     if (e.key === ALIASES_KEY) { ALIASES = loadAliases(); updateAliasesCount(); }
     if (e.key === PRICES_KEY) { PRICES = loadPrices(); }
-    if (e.key === POINTS_KEY) { _points = loadPoints(); updateHeaderPoint(); updatePointsCount(); renderToday(); }
-    if (e.key === ACTIVE_POINT_KEY) { _activePointId = loadActivePointId(); updateHeaderPoint(); syncActivePointToInput(); renderToday(); }
+    if (e.key === POINTS_KEY) { _points = loadPoints();  updatePointsCount(); renderToday(); }
+    if (e.key === ACTIVE_POINT_KEY) { _activePointId = loadActivePointId();  syncActivePointToInput(); renderToday(); }
     if (e.key === PROFILE_KEY) { _profile = loadProfile(); updateHeaderProfile(); updateProfileInfoBlock(); renderToday(); }
     if (e.key === ROUTE_KEY) { _route = loadRoute(); renderToday(); }
   });
