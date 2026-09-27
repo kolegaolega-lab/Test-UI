@@ -645,18 +645,7 @@ body[data-active-tab="check"] .check-steps{display:block}
 .tabbar-btn[data-tab="catalog"] .tb-icon svg{fill:currentColor;stroke:none}
 .tabbar-btn[data-tab="catalog"] .tb-icon svg circle{fill:currentColor}
 .tabbar-btn .tb-label{display:block;line-height:1.2;font-size:10px;font-weight:600}
-.tabbar-spacer{flex:0 0 64px;pointer-events:none}
-.tabbar-fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px) / 2);width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;border:4px solid var(--bg-card);box-shadow:0 6px 18px rgba(10,132,255,.38),0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;z-index:503;cursor:pointer;padding:0;min-height:0;transition:transform .18s cubic-bezier(.32,.72,0,1),box-shadow .18s;font-family:inherit}
-.tabbar-fab:active{transform:translateX(-50%) scale(.94)}
-.tabbar-fab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.fab-backdrop{position:fixed;inset:0;z-index:502;background:rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:opacity .18s}
-.fab-backdrop.show{opacity:1;pointer-events:auto}
-.fab-menu{position:fixed;left:50%;transform:translateX(-50%) translateY(8px);bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:504;background:var(--bg-card);border:1px solid var(--separator);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.24),0 4px 12px rgba(0,0,0,.12);overflow:hidden;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;min-width:240px}
-.fab-menu.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
-.fab-menu-item{display:flex;align-items:center;gap:12px;padding:14px 18px;background:transparent;border:0;border-bottom:1px solid var(--separator);width:100%;text-align:left;color:var(--text);font-family:inherit;font-size:14.5px;font-weight:500;cursor:pointer;min-height:auto;border-radius:0;white-space:normal}
-.fab-menu-item:last-child{border-bottom:0}
-.fab-menu-item:active{background:var(--bg-input)}
-.fab-menu-item .fm-icon{font-size:20px;line-height:1;flex:0 0 auto;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI Emoji","Apple Color Emoji",sans-serif}
+/* v9.14.0: FAB убран, 4 вкладки */
 
 /* ═══════════════════════════════════════════
    v9.10.0 — Сегодня + маршрут дня (Сессия 4)
@@ -1224,28 +1213,7 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
 
 </main>
 
-<!-- ═══════════════ v9.9.9 — Таббар + FAB ═══════════════ -->
-<div class="fab-backdrop" id="fabBackdrop"></div>
-
-<div class="fab-menu" id="fabMenu" role="menu" aria-label="Камера">
-  <button type="button" class="fab-menu-item" id="fabInvoiceBtn">
-    <span class="fm-icon">📷</span><span>Снять накладную</span>
-  </button>
-  <button type="button" class="fab-menu-item" id="fabSalesBtn">
-    <span class="fm-icon">🧾</span><span>Снять чек продаж</span>
-  </button>
-  <button type="button" class="fab-menu-item" id="fabGalleryBtn">
-    <span class="fm-icon">🖼</span><span>Из галереи</span>
-  </button>
-  <button type="button" class="fab-menu-item" id="fabPdfBtn">
-    <span class="fm-icon">📁</span><span>PDF-файл</span>
-  </button>
-</div>
-
-<button type="button" class="tabbar-fab" id="fabBtn" aria-label="Камера">
-  <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-</button>
-
+<!-- ═══════════════ v9.14.0 — Таббар (4 вкладки) ═══════════════ -->
 <nav class="tabbar" id="tabbar">
   <button type="button" class="tabbar-btn active" data-tab="home">
     <span class="tb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
@@ -1255,7 +1223,6 @@ main{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
     <span class="tb-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></span>
     <span class="tb-label">Проверка</span>
   </button>
-  <span class="tabbar-spacer"></span>
   <button type="button" class="tabbar-btn" data-tab="history">
     <span class="tb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg></span>
     <span class="tb-label">График</span>
@@ -9183,12 +9150,8 @@ function bindUI() {
     requestAnimationFrame(() => { try { el.select(); } catch (_) {} });
   });
 
-  /* === v9.9.9: таббар + FAB === */
+  /* === v9.9.9: таббар === */
   bindTabbar();
-  bindFab();
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeFabMenu();
-  });
 
   /* === v9.13.0: строки вкладки «Ещё» === */
   bindMoreRows();
@@ -9499,64 +9462,10 @@ function bindTabbar() {
 }
 
 /* ═══════════════════════════════════════════
-   v9.9.9 — FAB
+   v9.14.0 — FAB убран (4 вкладки)
+   Камера доступна через кнопки «Накладные» / «Чек продаж»
+   в шаге 2 «Материалы» на вкладке «Проверка».
    ═══════════════════════════════════════════ */
-function openFabMenu() {
-  const menu = $('fabMenu');
-  const backdrop = $('fabBackdrop');
-  if (!menu || !backdrop) return;
-  menu.classList.add('show');
-  backdrop.classList.add('show');
-}
-function closeFabMenu() {
-  const menu = $('fabMenu');
-  const backdrop = $('fabBackdrop');
-  if (!menu || !backdrop) return;
-  menu.classList.remove('show');
-  backdrop.classList.remove('show');
-}
-function bindFab() {
-  const btn = $('fabBtn');
-  const backdrop = $('fabBackdrop');
-  if (btn) btn.addEventListener('click', () => {
-    const menu = $('fabMenu');
-    if (menu && menu.classList.contains('show')) closeFabMenu();
-    else openFabMenu();
-  });
-  if (backdrop) backdrop.addEventListener('click', closeFabMenu);
-
-  const invInput = $('invoicePhotoInput');
-  const salInput = $('salesPhotoInput');
-
-  const invBtn = $('fabInvoiceBtn');
-  if (invBtn) invBtn.addEventListener('click', () => {
-    closeFabMenu();
-    // Перейти на вкладку «Проверка», чтобы очередь фото была видна
-    setActiveTab('check');
-    setTimeout(() => { if (invInput) invInput.click(); }, 150);
-  });
-
-  const salBtn = $('fabSalesBtn');
-  if (salBtn) salBtn.addEventListener('click', () => {
-    closeFabMenu();
-    setActiveTab('check');
-    setTimeout(() => { if (salInput) salInput.click(); }, 150);
-  });
-
-  const galBtn = $('fabGalleryBtn');
-  if (galBtn) galBtn.addEventListener('click', () => {
-    closeFabMenu();
-    setActiveTab('check');
-    setTimeout(() => { if (invInput) invInput.click(); }, 150);
-  });
-
-  const pdfBtn = $('fabPdfBtn');
-  if (pdfBtn) pdfBtn.addEventListener('click', () => {
-    closeFabMenu();
-    setActiveTab('check');
-    setTimeout(() => { if (invInput) invInput.click(); }, 150);
-  });
-}
 
 /* ═══════════════════════════════════════════
    v9.11.0 — ИНДИКАТОР ШАГОВ «ПРОВЕРКИ»
